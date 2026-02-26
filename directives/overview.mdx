@@ -1,0 +1,75 @@
+---
+title: Directives Overview
+description: Build type-safe directives for all Alexa presentation interfaces
+---
+
+Directives are instructions sent from your skill to the Alexa device. This library provides two patterns for building directives:
+
+1. **Builder classes** — Fluent API with method chaining for complex directives
+2. **Factory functions** — One-liner convenience functions for common cases
+
+Both patterns validate required fields at build time and throw descriptive errors for missing or invalid properties.
+
+## Available Directives
+
+<CardGroup cols={2}>
+  <Card title="APL" icon="display" href="/directives/apl">
+    RenderDocument, ExecuteCommands, SendIndexListData, SendTokenListData, UpdateIndexListData
+  </Card>
+  <Card title="APLA" icon="volume-high" href="/directives/apla">
+    RenderDocument for audio responses
+  </Card>
+  <Card title="APLT" icon="clock" href="/directives/aplt">
+    RenderDocument and ExecuteCommands for character displays
+  </Card>
+  <Card title="AudioPlayer" icon="headphones" href="/directives/audioplayer">
+    Play, Stop, ClearQueue for long-form audio
+  </Card>
+  <Card title="VideoApp" icon="film" href="/directives/videoapp">
+    Launch for full-screen native video
+  </Card>
+  <Card title="HTML" icon="globe" href="/directives/html">
+    Start and HandleMessage for web content
+  </Card>
+</CardGroup>
+
+## Builder vs Factory Pattern
+
+<Tabs>
+  <Tab title="Builder Pattern">
+    Use builders when you need fine-grained control or are constructing directives conditionally:
+
+    ```typescript
+    const directive = new RenderDocumentDirectiveBuilder()
+      .setToken("my-token")
+      .setDocument(myDocument)
+      .addDataSource("myData", myDataSource)
+      .build();
+    ```
+  </Tab>
+  <Tab title="Factory Function">
+    Use factory functions for straightforward, one-shot directive creation:
+
+    ```typescript
+    const directive = createRenderDocumentDirective(
+      "my-token",
+      myDocument,
+      { myData: myDataSource }
+    );
+    ```
+  </Tab>
+</Tabs>
+
+## Validation
+
+All builders and factory functions validate required fields before returning a directive. If a required field is missing, a descriptive `Error` is thrown:
+
+```typescript
+try {
+  const directive = new RenderDocumentDirectiveBuilder().build();
+} catch (error) {
+  // Error: "APL RenderDocument directive requires a token"
+}
+```
+
+You can also validate directives after construction using the [Directive Validator](/validators/directive-validator).

@@ -1,0 +1,61 @@
+---
+title: HTML Types
+description: Types for the Alexa.Presentation.HTML interface — configuration, transformers, directives, and message requests
+---
+
+Types for the HTML interface that enables skills to render interactive web content on screen devices with bidirectional messaging between the skill backend and a web app.
+
+## Configuration
+
+```typescript
+interface HTMLConfiguration {
+  timeoutInSeconds?: number;  // 30–300 seconds, default: 30
+}
+
+interface HTMLTransformer {
+  transformer: string;   // e.g. "ssmlToSpeech", "textToHint"
+  inputPath: string;     // JSON path to input data
+  outputName: string;    // Output property name
+}
+```
+
+## Directive Types
+
+### HTMLStartDirective
+
+Launches the HTML runtime and loads a web app:
+
+```typescript
+interface HTMLStartDirective extends Directive {
+  type: "Alexa.Presentation.HTML.Start";
+  configuration?: HTMLConfiguration;
+  data?: Record<string, unknown>;
+  transformers?: HTMLTransformer[];
+  request: {
+    uri: string;          // HTTPS URL of the web app
+    method: "GET";
+    headers?: Record<string, string>;
+  };
+}
+```
+
+### HTMLHandleMessageDirective
+
+Sends a message from the skill to the running web app:
+
+```typescript
+interface HTMLHandleMessageDirective extends Directive {
+  type: "Alexa.Presentation.HTML.HandleMessage";
+  message: Record<string, unknown>;
+  transformers?: HTMLTransformer[];
+}
+```
+
+## Request Type
+
+```typescript
+interface HTMLMessageRequest extends Request {
+  type: "Alexa.Presentation.HTML.Message";
+  message: Record<string, unknown>;  // Arbitrary payload from the web app
+}
+```

@@ -1,0 +1,74 @@
+---
+title: APLT Types
+description: Types for the Alexa.Presentation.APLT interface — character display documents, components, commands, and directives
+---
+
+Types for devices with character displays (e.g., Echo Dot with clock). APLT documents render content on LED 7-segment alphanumeric displays.
+
+## APLTDocument
+
+```typescript
+interface APLTDocument {
+  type: "APLT";
+  version: string;
+  description?: string;
+  mainTemplate: APLTMainTemplate;
+}
+
+interface APLTMainTemplate {
+  parameters?: string[];
+  item?: APLTComponent;
+  items?: APLTComponent[];
+}
+```
+
+## APLTComponent
+
+```typescript
+interface APLTComponent {
+  type: APLTComponentType;
+  id?: string;
+  when?: boolean | string;
+  description?: string;
+  text?: string;                                    // Text
+  textAlign?: "left" | "right" | "center";          // Text
+  overflow?: "clip" | "marquee";                    // Text
+  items?: APLTComponent[];                          // Container, Pager
+  item?: APLTComponent;                             // Container, Pager
+  format?: string;                                  // TimeText
+}
+
+type APLTComponentType = "Text" | "Container" | "Pager" | "TimeText";
+```
+
+## APLTCommand
+
+```typescript
+interface APLTCommand {
+  type: string;
+  description?: string;
+  delay?: number;
+  when?: boolean | string;
+  componentId?: string;
+  property?: string;
+  value?: unknown;
+}
+```
+
+## Directives
+
+```typescript
+interface APLTRenderDocumentDirective extends Directive {
+  type: "Alexa.Presentation.APLT.RenderDocument";
+  token: string;
+  targetProfile?: "FOUR_CHARACTER_CLOCK";
+  document: APLTDocument;
+  datasources?: Record<string, unknown>;
+}
+
+interface APLTExecuteCommandsDirective extends Directive {
+  type: "Alexa.Presentation.APLT.ExecuteCommands";
+  token: string;
+  commands: APLTCommand[];
+}
+```

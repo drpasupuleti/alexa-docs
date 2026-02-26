@@ -1,0 +1,89 @@
+---
+title: HTML Request Handlers
+description: Handle messages from web apps running in the HTML interface
+---
+
+The HTML handler module processes `Message` requests sent from a web app running in the Alexa HTML runtime to the skill backend.
+
+## Type Guard
+
+```typescript
+import { isHTMLMessage } from "alexa-apl-interface";
+
+if (isHTMLMessage(request)) {
+  // request is HTMLMessageRequest
+}
+```
+
+## Extraction Utilities
+
+### Full Message
+
+```typescript
+import { getHTMLMessage } from "alexa-apl-interface";
+
+const message = getHTMLMessage(request);
+// Record<string, unknown> — the full payload from the web app
+```
+
+### Typed Field Access
+
+```typescript
+import { getHTMLMessageField } from "alexa-apl-interface";
+
+const action = getHTMLMessageField<string>(request, "action");
+const score = getHTMLMessageField<number>(request, "score");
+const data = getHTMLMessageField<{ items: string[] }>(request, "data");
+```
+
+<Note>
+  `getHTMLMessageField` returns `undefined` if the key does not exist in the message payload.
+</Note>
+
+## Device Support
+
+```typescript
+import { supportsHTML } from "alexa-apl-interface";
+
+if (supportsHTML(alexaRequest)) {
+  // Safe to send HTML Start and HandleMessage directives
+}
+```
+
+## Bidirectional Messaging Example
+
+```typescript
+import {
+  isHTMLMessage,
+  getHTMLMessageField,
+  supportsHTML,
+} from "alexa-apl-interface";
+import { createHTMLHandleMessageDirective } from "alexa-apl-interface";
+
+if (isHTMLMessage(request)) {
+  const action = getHTMLMessageField<string>(request, "action");
+
+  if (action === "fetchData") {
+    // Send data back to the web app
+    const directive = createHTMLHandleMessageDirective({
+      type: "dataResponse",
+      items: ["item1", "item2", "item3"],
+    });
+
+    return createAPLResponse({
+      directives: [directive],
+      shouldEndSession: false,
+    });
+  }
+}
+```
+
+## Handler Interface
+
+```typescript
+interface HTMLMessageHandler {
+  canHandle(request: HTMLMessageRequest): boolean;
+  handle(request: HTMLMessageRequest, fullRequest: AlexaSkillRequest):
+    AlexaSkillResponse | Promise<AlexaSkillResponse>;
+}
+```

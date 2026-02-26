@@ -1,0 +1,86 @@
+---
+title: PackageManager Types
+description: Types for the Alexa.DataStore.PackageManager interface — package usage, installation errors, and lifecycle requests
+---
+
+Types for the PackageManager interface that informs the skill when Alexa installs, removes, and updates APL packages (widgets) on a device.
+
+## Package Usage
+
+```typescript
+interface PackageUsage {
+  instanceId?: string;
+  location: PackageLocation;
+}
+
+type PackageLocation = "FAVORITE";
+```
+
+## Installation Error
+
+```typescript
+type PackageInstallationErrorType = "PACKAGEMANAGER_INTERNAL_ERROR";
+
+interface PackageInstallationError {
+  type: PackageInstallationErrorType;
+  content: Record<string, unknown>;
+}
+```
+
+## Request Types
+
+### UsagesInstalledRequest
+
+Sent when Alexa installs the package on a user's device:
+
+```typescript
+interface UsagesInstalledRequest extends Request {
+  type: "Alexa.DataStore.PackageManager.UsagesInstalled";
+  payload: {
+    packageId: string;
+    packageVersion: string;
+    usages: PackageUsage[];
+  };
+}
+```
+
+### UsagesRemovedRequest
+
+Sent when a user removes the widget and Alexa uninstalls the package:
+
+```typescript
+interface UsagesRemovedRequest extends Request {
+  type: "Alexa.DataStore.PackageManager.UsagesRemoved";
+  payload: {
+    packageId: string;
+    packageVersion: string;
+    usages: PackageUsage[];
+  };
+}
+```
+
+### UpdateRequestRequest
+
+Sent when Alexa updates the package to a new version:
+
+```typescript
+interface UpdateRequestRequest extends Request {
+  type: "Alexa.DataStore.PackageManager.UpdateRequest";
+  packageId: string;
+  fromVersion: string;
+  toVersion: string;
+}
+```
+
+### InstallationErrorRequest
+
+Sent when an error occurs during package installation, removal, or update:
+
+```typescript
+interface InstallationErrorRequest extends Request {
+  type: "Alexa.DataStore.PackageManager.InstallationError";
+  packageId: string;
+  version: string;
+  error?: PackageInstallationError;
+}
+```

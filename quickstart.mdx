@@ -1,0 +1,148 @@
+---
+title: Quickstart
+description: Get up and running with alexa-apl-interface in under 5 minutes
+---
+
+## Prerequisites
+
+- Node.js (any current LTS version)
+- TypeScript ≥ 5.3
+
+## Installation
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/drpasupuleti/alexa-smart-properties-demo.git
+    cd alexa-smart-properties-demo
+    ```
+  </Step>
+  <Step title="Install dependencies">
+    ```bash
+    npm install
+    ```
+  </Step>
+  <Step title="Build the library">
+    ```bash
+    npm run build
+    ```
+    The compiled output goes to `dist/`.
+  </Step>
+</Steps>
+
+## Your First Directive
+
+Render an APL document on a screen device:
+
+```typescript
+import {
+  createRenderDocumentDirective,
+  createAPLResponse,
+} from "alexa-apl-interface";
+
+const directive = createRenderDocumentDirective(
+  "my-document-token",
+  {
+    type: "APL",
+    version: "2024.3",
+    mainTemplate: {
+      items: [
+        {
+          type: "Text",
+          text: "Hello from APL!",
+          fontSize: "48dp",
+          textAlign: "center",
+        },
+      ],
+    },
+  },
+  {
+    myData: {
+      type: "object",
+      properties: { greeting: "Hello, World!" },
+    },
+  }
+);
+
+const response = createAPLResponse({
+  speech: "Here is your APL document",
+  directives: [directive],
+  shouldEndSession: false,
+});
+```
+
+## Handle an Incoming Request
+
+Use type guards and extraction utilities to process APL requests:
+
+```typescript
+import {
+  isAPLUserEvent,
+  getUserEventArguments,
+  createAPLResponse,
+} from "alexa-apl-interface";
+
+function handleRequest(alexaRequest) {
+  const request = alexaRequest.request;
+
+  if (isAPLUserEvent(request)) {
+    const args = getUserEventArguments(request);
+    console.log("User tapped:", args);
+
+    return createAPLResponse({
+      speech: `You selected ${args[0]}`,
+      shouldEndSession: false,
+    });
+  }
+}
+```
+
+## Use the Request Router
+
+Route all APL-related requests with a single configuration:
+
+```typescript
+import {
+  APLRequestRouter,
+  createAPLResponse,
+  createDirectiveOnlyResponse,
+} from "alexa-apl-interface";
+
+const router = new APLRequestRouter({
+  onUserEvent: (request, fullRequest) => {
+    return createAPLResponse({ speech: "Got your tap!" });
+  },
+  onLoadIndexListData: (request, fullRequest) => {
+    // Return next batch of list items
+    return createDirectiveOnlyResponse([/* SendIndexListData directive */]);
+  },
+  onAudioPlaybackNearlyFinished: (request, fullRequest) => {
+    // Enqueue the next track
+    return createDirectiveOnlyResponse([/* AudioPlayer.Play directive */]);
+  },
+});
+
+// In your skill handler:
+if (router.canHandle(alexaRequest)) {
+  return router.handle(alexaRequest);
+}
+```
+
+## Available Scripts
+
+| Command | Description |
+|---|---|
+| `npm run build` | Compile TypeScript to `dist/` |
+| `npm run lint` | Type-check without emitting files |
+| `npm run clean` | Remove build artifacts |
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Project Structure" icon="folder-tree" href="/project-structure">
+    Understand how the library is organized.
+  </Card>
+  <Card title="APL Directives" icon="display" href="/directives/apl">
+    Deep dive into APL directive builders.
+  </Card>
+</CardGroup>

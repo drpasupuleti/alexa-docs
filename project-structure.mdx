@@ -1,0 +1,80 @@
+---
+title: Project Structure
+description: How the alexa-apl-interface library is organized
+---
+
+## Directory Layout
+
+```
+src/
+├── types/          # TypeScript type definitions for all interfaces
+├── directives/     # Directive builder functions and classes
+├── handlers/       # Request handlers, type guards, and utilities
+├── context/        # Context parsers (visual context, viewport, widget)
+├── validators/     # Directive and request validators
+├── router/         # Request router
+└── index.ts        # Library entry point (re-exports everything)
+```
+
+## Module Overview
+
+<AccordionGroup>
+  <Accordion title="types/" icon="shapes">
+    All TypeScript interfaces and type definitions. Each file maps to an Alexa interface:
+    - `common.ts` — Shared types: request/response envelopes, viewport, extensions, visual context
+    - `apl.ts` — APL documents, components, commands, data sources, directives, requests
+    - `apla.ts` — APLA documents, audio components, directives, requests
+    - `aplt.ts` — APLT documents, character display components, directives
+    - `audioplayer.ts` — AudioPlayer streams, metadata, directives, playback requests
+    - `videoapp.ts` — VideoApp sources, metadata, directives, playback requests
+    - `html.ts` — HTML runtime configuration, directives, message requests
+    - `datastore.ts` — Data store commands and error types
+    - `package-manager.ts` — Package lifecycle request types
+    - `visual-context.ts` — Visual context types and helper functions
+    - `widget.ts` — Widget context types
+  </Accordion>
+
+  <Accordion title="directives/" icon="paper-plane">
+    Builder classes and factory functions for constructing directives:
+    - `apl-directives.ts` — RenderDocument, ExecuteCommands, SendIndexListData, SendTokenListData, UpdateIndexListData
+    - `apla-directives.ts` — APLA RenderDocument
+    - `aplt-directives.ts` — APLT RenderDocument, ExecuteCommands
+    - `audioplayer-directives.ts` — Play, Stop, ClearQueue
+    - `videoapp-directives.ts` — Launch
+    - `html-directives.ts` — Start, HandleMessage
+  </Accordion>
+
+  <Accordion title="handlers/" icon="inbox">
+    Request handler interfaces, type guards, and data extraction utilities:
+    - `apl-request-handler.ts` — UserEvent, LoadIndexListData, LoadTokenListData, RuntimeError
+    - `apla-request-handler.ts` — APLA RuntimeError
+    - `audioplayer-request-handler.ts` — All AudioPlayer playback events
+    - `videoapp-request-handler.ts` — All VideoApp playback events
+    - `datastore-request-handler.ts` — DataStoreError
+    - `package-manager-handler.ts` — UsagesInstalled, UsagesRemoved, UpdateRequest, InstallationError
+    - `html-request-handler.ts` — HTML Message
+  </Accordion>
+
+  <Accordion title="context/" icon="eye">
+    Utilities for extracting device and presentation context from requests:
+    - `viewport-parser.ts` — Device capabilities, viewport dimensions, interface support detection
+    - `visual-context-parser.ts` — Component hierarchy search, tag extraction, position parsing
+    - `widget-context-parser.ts` — Widget context extraction, installed package detection
+  </Accordion>
+
+  <Accordion title="validators/" icon="shield-check">
+    Runtime validation for directives and requests:
+    - `directive-validator.ts` — Validates all directive types
+    - `request-validator.ts` — Timestamp freshness checks (replay attack prevention)
+    - `document-name-validator.ts` — Validates linked document names (path traversal prevention)
+  </Accordion>
+
+  <Accordion title="router/" icon="route">
+    Request routing framework:
+    - `request-router.ts` — `APLRequestRouter` class that dispatches requests to handlers
+  </Accordion>
+</AccordionGroup>
+
+## Build Output
+
+After running `npm run build`, compiled JavaScript and declaration files are emitted to `dist/` mirroring the `src/` structure. The `package.json` points to `dist/index.js` as the main entry and `dist/index.d.ts` for types.

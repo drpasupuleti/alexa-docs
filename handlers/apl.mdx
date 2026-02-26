@@ -1,0 +1,148 @@
+---
+title: APL Request Handlers
+description: Handle UserEvent, LoadIndexListData, LoadTokenListData, and RuntimeError requests from APL documents
+---
+
+The APL request handler module processes four request types from the `Alexa.Presentation.APL` interface.
+
+## Type Guards
+
+```typescript
+import {
+  isAPLUserEvent,
+  isAPLLoadIndexListData,
+  isAPLLoadTokenListData,
+  isAPLRuntimeError,
+} from "alexa-apl-interface";
+
+if (isAPLUserEvent(request)) {
+  // request is APLUserEventRequest
+}
+```
+
+| Guard | Narrows To | Triggered When |
+|---|---|---|
+| `isAPLUserEvent(request)` | `APLUserEventRequest` | User interacts with a SendEvent-enabled component |
+| `isAPLLoadIndexListData(request)` | `APLLoadIndexListDataRequest` | Device needs more items from a `dynamicIndexList` |
+| `isAPLLoadTokenListData(request)` | `APLLoadTokenListDataRequest` | Device needs the next page from a `dynamicTokenList` |
+| `isAPLRuntimeError(request)` | `APLRuntimeErrorRequest` | An error occurred during APL rendering |
+
+## Extraction Utilities
+
+### UserEvent
+
+```typescript
+import {
+  getUserEventArguments,
+  getUserEventSource,
+  getUserEventComponents,
+} from "alexa-apl-interface";
+
+const args = getUserEventArguments(request);       // unknown[]
+const source = getUserEventSource(request);         // { type, handler, id?, uid?, value? }
+const components = getUserEventComponents(request); // Record<string, unknown>
+```
+
+### LoadIndexListData
+
+```typescript
+import {
+  getLoadIndexListDataParams,
+  getLoadIndexListDataCorrelationToken,
+} from "alexa-apl-interface";
+
+const { listId, startIndex, count, correlationToken } =
+  getLoadIndexListDataParams(request);
+```
+
+### LoadTokenListData
+
+```typescript
+import { getLoadTokenListDataParams } from "alexa-apl-interface";
+
+const { listId, pageToken, correlationToken } =
+  getLoadTokenListDataParams(request);
+```
+
+### RuntimeError
+
+```typescript
+import { getRuntimeErrors } from "alexa-apl-interface";
+
+const errors = getRuntimeErrors(request);
+// Array of { type: string, reason: string, message: string }
+```
+
+## Response Helpers
+
+### createAPLResponse
+
+Builds a standard response with auto-escaped SSML speech. User-provided text is sanitized to prevent SSML injection.
+
+```typescript
+import { createAPLResponse } from "alexa-apl-interface";
+
+const response = createAPLResponse({
+  speech: "Here's what I found",
+  repromptSpeech: "Would you like to hear more?",
+  directives: [renderDocumentDirective],
+  shouldEndSession: false,
+  sessionAttributes: { lastAction: "search" },
+});
+```
+
+### createAPLResponseWithRawSSML
+
+For pre-formed SSML markup. Does not escape the input.
+
+```typescript
+import { createAPLResponseWithRawSSML, escapeSSML } from "alexa-apl-interface";
+
+const response = createAPLResponseWithRawSSML({
+  ssml: `Hello <emphasis level="strong">${escapeSSML(userName)}</emphasis>`,
+});
+```
+
+<Warning>
+  Never pass unsanitized user input to `createAPLResponseWithRawSSML`. Use `escapeSSML()` on any user-derived segments.
+</Warning>
+
+### createDirectiveOnlyResponse
+
+Returns a response with only directives — no speech or session management. Used for `LoadIndexListData` and `LoadTokenListData` responses.
+
+```typescript
+import { createDirectiveOnlyResponse } from "alexa-apl-interface";
+
+const response = createDirectiveOnlyResponse([sendIndexListDataDirective]);
+```
+
+### escapeSSML
+
+Escapes XML/SSML special characters: `&`, `<`, `>`, `"`, `'`.
+
+```typescript
+import { escapeSSML } from "alexa-apl-interface";
+
+const safe = escapeSSML('Turn <b>left</b> & "go"');
+// => 'Turn &lt;b&gt;left&lt;/b&gt; &amp; &quot;go&quot;'
+```
+
+## Handler Interfaces
+
+```typescript
+interface APLUserEventHandler {
+  canHandle(request: APLUserEventRequest): boolean;
+  handle(request: APLUserEventRequest, fullRequest: AlexaSkillRequest):
+    AlexaSkillResponse | Promise<AlexaSkillResponse>;
+}
+
+interface APLLoadIndexListDataHandler { /* same pattern */ }
+interface APLLoadTokenListDataHandler { /* same pattern */ }
+
+interface APLRuntimeErrorHandler {
+  canHandle(request: APLRuntimeErrorRequest): boolean;
+  handle(request: APLRuntimeErrorRequest, fullRequest: AlexaSkillRequest):
+    void | Promise<void>;  // notification only — no response
+}
+```

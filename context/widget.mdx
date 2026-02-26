@@ -1,0 +1,104 @@
+---
+title: Widget Context Parser
+description: Access widget contexts, check package installation, and detect widget-triggered requests
+---
+
+The widget context parser provides utilities for working with widget information in skill requests. When your skill includes a widget, requests may contain additional context about visible widgets and installed packages.
+
+## Widget Context Extraction
+
+```typescript
+import {
+  getWidgetContexts,
+  getWidgetContextByUri,
+  hasVisibleWidgets,
+  getWidgetVisibleComponents,
+} from "alexa-apl-interface";
+
+// Get all visible widget contexts
+const widgets = getWidgetContexts(request);
+// Array of { presentationUri, componentsVisibleOnScreen? }
+
+// Get a specific widget by URI
+const widget = getWidgetContextByUri(request, "amzn1:alexa:apl:widget:123");
+
+// Check if any widgets are visible
+if (hasVisibleWidgets(request)) {
+  // At least one widget is on screen
+}
+
+// Get visible components for a specific widget
+const components = getWidgetVisibleComponents(request, "amzn1:alexa:apl:widget:123");
+```
+
+## Package Manager Context
+
+```typescript
+import {
+  getInstalledPackages,
+  isPackageInstalled,
+  getInstalledPackageVersion,
+} from "alexa-apl-interface";
+
+// Get all installed packages
+const packages = getInstalledPackages(request);
+// Array of { packageId, packageVersion }
+
+// Check if a specific package is installed
+if (isPackageInstalled(request, "amzn1.ask.package.my-widget")) {
+  const version = getInstalledPackageVersion(request, "amzn1.ask.package.my-widget");
+  console.log(`Widget version: ${version}`);
+}
+```
+
+## Widget Request Detection
+
+```typescript
+import { isWidgetRequest, getPresentationUri } from "alexa-apl-interface";
+
+// Check if the request was triggered from a widget interaction
+if (isWidgetRequest(request)) {
+  const uri = getPresentationUri(request);
+  console.log(`Widget interaction from: ${uri}`);
+}
+```
+
+<Info>
+  `isWidgetRequest()` checks for a `presentationUri` in the main APL presentation context. This is present when the user interacts with a widget (e.g., taps a button on a widget).
+</Info>
+
+## Complete Widget Example
+
+```typescript
+import {
+  isWidgetRequest,
+  getPresentationUri,
+  isPackageInstalled,
+  getWidgetVisibleComponents,
+  findComponentById,
+} from "alexa-apl-interface";
+
+function handleWidgetRequest(alexaRequest: AlexaSkillRequest) {
+  // 1. Check if this is a widget interaction
+  if (!isWidgetRequest(alexaRequest)) {
+    return; // Not from a widget
+  }
+
+  const widgetUri = getPresentationUri(alexaRequest);
+
+  // 2. Check if the widget package is installed
+  if (!isPackageInstalled(alexaRequest, "amzn1.ask.package.my-widget")) {
+    return; // Widget not installed
+  }
+
+  // 3. Inspect visible widget components
+  const components = getWidgetVisibleComponents(alexaRequest, widgetUri!);
+  const statusText = findComponentById(components, "statusLabel");
+
+  // 4. Respond based on widget state
+  return createAPLResponse({
+    speech: "Updated your widget",
+    shouldEndSession: true,
+  });
+}
+```

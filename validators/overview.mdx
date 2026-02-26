@@ -1,0 +1,42 @@
+---
+title: Validators
+description: Validate directives, request timestamps, and document names before processing
+---
+
+Validators catch errors early — before directives are sent to devices or stale requests are processed.
+
+<CardGroup cols={3}>
+  <Card title="Directive Validator" icon="check-double" href="/validators/directive-validator">
+    Validate directive structure and required fields for all APL, AudioPlayer, and VideoApp directive types.
+  </Card>
+  <Card title="Request Validator" icon="clock" href="/validators/request-validator">
+    Verify request timestamp freshness to guard against replay attacks.
+  </Card>
+  <Card title="Document Name Validator" icon="file-shield" href="/validators/document-name-validator">
+    Validate document names used in Link-type references to prevent path traversal.
+  </Card>
+</CardGroup>
+
+## Quick Example
+
+```typescript
+import { validateDirective } from "alexa-apl-interface";
+import { isRequestFresh } from "alexa-apl-interface";
+import { isValidDocumentName } from "alexa-apl-interface";
+
+// Validate a directive before sending
+const result = validateDirective(myDirective);
+if (!result.valid) {
+  console.error("Directive errors:", result.errors);
+}
+
+// Check request freshness
+if (!isRequestFresh(alexaRequest)) {
+  return createAPLResponse({ speech: "Request expired. Please try again." });
+}
+
+// Validate a document name
+if (!isValidDocumentName(userProvidedName)) {
+  throw new Error("Invalid document name");
+}
+```

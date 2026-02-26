@@ -1,0 +1,68 @@
+---
+title: Document Name Validator
+description: Validate document names for Link-type references to prevent path traversal
+---
+
+The document name validator ensures that names used in Link-type document references (`doc://alexa/apl/documents/<name>`) are safe and well-formed.
+
+## isValidDocumentName
+
+Returns `true` if the name is valid:
+
+```typescript
+import { isValidDocumentName } from "alexa-apl-interface";
+
+isValidDocumentName("my-document");       // true
+isValidDocumentName("my_doc_v2");         // true
+isValidDocumentName("doc.v1.0");          // true
+isValidDocumentName("../traversal");      // false
+isValidDocumentName("has spaces");        // false
+isValidDocumentName("");                  // false
+isValidDocumentName(".hidden");           // false
+```
+
+### Validation Rules
+
+| Rule | Description |
+|---|---|
+| Non-empty | Must be a non-empty string |
+| Max length | 128 characters maximum |
+| Allowed characters | Alphanumeric, hyphens (`-`), underscores (`_`), periods (`.`) |
+| No leading/trailing period | Cannot start or end with `.` |
+| No consecutive periods | `..` is rejected to prevent path traversal |
+
+## assertValidDocumentName
+
+Throws a descriptive error if the name is invalid. Useful for fail-fast validation:
+
+```typescript
+import { assertValidDocumentName } from "alexa-apl-interface";
+
+try {
+  assertValidDocumentName(userInput, "APL");
+} catch (error) {
+  // e.g. 'APL document name "../hack" contains invalid characters...'
+}
+```
+
+The `documentType` parameter (e.g., `"APL"`, `"APLA"`) is included in the error message for context.
+
+<Warning>
+  Always validate document names when they come from user input or external sources. The `..` sequence could enable path traversal in the document URI.
+</Warning>
+
+## Integration with Directives
+
+The `createLinkedRenderDocumentDirective` factory function calls `assertValidDocumentName` internally, so you get automatic validation when using the directive builders:
+
+```typescript
+import { createLinkedRenderDocumentDirective } from "alexa-apl-interface";
+
+// This will throw if the name is invalid
+const directive = createLinkedRenderDocumentDirective(
+  "my-token",
+  "my-safe-document",
+  {}
+);
+// Produces: doc://alexa/apl/documents/my-safe-document
+```

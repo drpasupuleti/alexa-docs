@@ -1,0 +1,281 @@
+---
+title: Common Types
+description: Core types shared across all APL interfaces — request/response envelopes, viewport, visual context, and base types
+---
+
+These foundational types are used throughout the SDK. They define the structure of skill requests, responses, device context, viewports, and visual context components.
+
+## Request Envelope
+
+```typescript
+interface AlexaSkillRequest {
+  version: string;
+  session: Session;
+  context: RequestContext;
+  request: Request;
+}
+```
+
+### Session
+
+```typescript
+interface Session {
+  new?: boolean;
+  sessionId?: string;
+  application?: Application;
+  attributes?: Record<string, unknown>;
+  user?: User;
+}
+
+interface Application { applicationId: string; }
+
+interface User {
+  userId: string;
+  accessToken?: string;
+  permissions?: { consentToken?: string };
+}
+```
+
+### RequestContext
+
+```typescript
+interface RequestContext {
+  System: SystemContext;
+  Viewport?: ViewportContext;
+  Viewports?: ViewportObject[];
+  Extensions?: ExtensionsContext;
+  AudioPlayer?: AudioPlayerContext;
+  "Alexa.Presentation.APL"?: APLPresentationContext;
+  "Alexa.Presentation"?: AlexaPresentationArrayContext;
+  "Alexa.DataStore.PackageManager"?: DataStorePackageManagerContext;
+}
+```
+
+### SystemContext
+
+```typescript
+interface SystemContext {
+  device: DeviceContext;
+  application?: Application;
+  user?: User;
+  apiEndpoint: string;
+  apiAccessToken: string;
+}
+
+interface DeviceContext {
+  deviceId: string;
+  supportedInterfaces: SupportedInterfaces;
+}
+```
+
+## SupportedInterfaces
+
+```typescript
+interface SupportedInterfaces {
+  AudioPlayer?: Record<string, unknown>;
+  VideoApp?: Record<string, unknown>;
+  "Alexa.Presentation.APL"?: APLInterfaceSupport;
+  "Alexa.Presentation.APLA"?: Record<string, unknown>;
+  "Alexa.Presentation.APLT"?: APLTInterfaceSupport;
+  "Alexa.Presentation.HTML"?: HTMLInterfaceSupport;
+  [key: string]: unknown;  // additional interfaces
+}
+
+interface APLInterfaceSupport  { runtime: { maxVersion: string } }
+interface APLTInterfaceSupport { runtime: { maxVersion: string } }
+interface HTMLInterfaceSupport { runtime?: { maxVersion?: string } }
+```
+
+## Viewport Types
+
+### ViewportContext (Primary)
+
+```typescript
+interface ViewportContext {
+  experiences: ViewportExperience[];
+  shape: ViewportShape;           // "RECTANGLE" | "ROUND"
+  pixelWidth: number;
+  pixelHeight: number;
+  dpi: number;
+  currentPixelWidth: number;
+  currentPixelHeight: number;
+  touch: TouchType[];             // ["SINGLE"]
+  keyboard: KeyboardType[];       // ["DIRECTION"]
+  video?: { codecs: string[] };
+}
+```
+
+### ViewportObject (Array)
+
+A discriminated union on the `type` field:
+
+```typescript
+type ViewportObject = APLViewportObject | APLTViewportObject;
+
+interface APLViewportObject {
+  id: string;
+  type: "APL";
+  shape?: ViewportShape;
+  pixelWidth?: number;
+  pixelHeight?: number;
+  dpi?: number;
+  touch?: TouchType[];
+  keyboard?: KeyboardType[];
+  video?: { codecs: string[] };
+}
+
+interface APLTViewportObject {
+  id: string;
+  type: "APLT";
+  supportedProfiles?: APLTProfile[];  // ["FOUR_CHARACTER_CLOCK"]
+  lineLength?: number;
+  lineCount?: number;
+  format?: APLTFormat;                // "SEVEN_SEGMENT"
+  interSegments?: InterSegment[];
+}
+
+interface InterSegment { x: number; y: number; characters: string; }
+```
+
+## Visual Context Types
+
+### VisibleComponent
+
+```typescript
+interface VisibleComponent {
+  id?: string;
+  uid: string;
+  position: string;                    // "WxH+X+Y:L" format
+  type: VisibleComponentType;          // "graphic" | "text" | "mixed" | "video" | "empty"
+  tags?: ComponentTags;
+  children?: VisibleComponent[];
+  entities?: EntityData[];
+  visibility?: number;                 // omitted when 1.0
+  transform?: number[];
+  role?: string;
+}
+```
+
+### ComponentTags
+
+```typescript
+interface ComponentTags {
+  viewport?: Record<string, unknown>;
+  focused?: boolean;
+  clickable?: boolean;
+  checked?: boolean;
+  disabled?: boolean;
+  spoken?: boolean;
+  ordinal?: number;
+  list?: ListTag;
+  listItem?: ListItemTag;
+  media?: MediaTag;
+  pager?: PagerTag;
+  scrollable?: ScrollableTag;
+}
+```
+
+### Tag Types
+
+<AccordionGroup>
+  <Accordion title="ListTag">
+    ```typescript
+    interface ListTag {
+      itemCount: number;
+      lowestIndexSeen: number;
+      highestIndexSeen: number;
+      lowestOrdinalSeen?: number;
+      highestOrdinalSeen?: number;
+    }
+    ```
+  </Accordion>
+  <Accordion title="MediaTag">
+    ```typescript
+    interface MediaTag {
+      allowAdjustSeekPositionForward: boolean;
+      allowAdjustSeekPositionBackwards: boolean;
+      allowNext: boolean;
+      allowPrevious: boolean;
+      audioTrack: "foreground" | "background" | "none";
+      entities?: unknown[];
+      muted: boolean;
+      positionInMilliseconds: number;
+      state: "idle" | "playing" | "paused";
+      url: string;
+    }
+    ```
+  </Accordion>
+  <Accordion title="PagerTag">
+    ```typescript
+    interface PagerTag {
+      index: number;
+      pageCount: number;
+      allowForward: boolean;
+      allowBackwards: boolean;
+    }
+    ```
+  </Accordion>
+  <Accordion title="ScrollableTag">
+    ```typescript
+    interface ScrollableTag {
+      direction: "horizontal" | "vertical";
+      allowForward: boolean;
+      allowBackwards: boolean;
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Response Envelope
+
+```typescript
+interface AlexaSkillResponse {
+  version: string;
+  sessionAttributes?: Record<string, unknown>;
+  response: ResponseBody;
+}
+
+interface ResponseBody {
+  outputSpeech?: OutputSpeech;
+  card?: Card;
+  reprompt?: Reprompt;
+  directives?: Directive[];
+  shouldEndSession?: boolean;
+}
+```
+
+### OutputSpeech & Card
+
+```typescript
+interface OutputSpeech {
+  type: "PlainText" | "SSML";
+  text?: string;
+  ssml?: string;
+  playBehavior?: "ENQUEUE" | "REPLACE_ALL" | "REPLACE_ENQUEUED";
+}
+
+interface Card {
+  type: "Simple" | "Standard" | "LinkAccount";
+  title?: string;
+  content?: string;
+  text?: string;
+  image?: { smallImageUrl?: string; largeImageUrl?: string };
+}
+```
+
+## Base Types
+
+```typescript
+interface Request {
+  type: string;
+  requestId?: string;
+  timestamp?: string;
+  locale?: string;
+  [key: string]: unknown;
+}
+
+interface Directive {
+  type: string;
+  [key: string]: unknown;
+}
+```

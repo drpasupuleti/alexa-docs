@@ -1,0 +1,91 @@
+---
+title: APLA Directives
+description: Build audio response directives using Alexa.Presentation.APLA
+---
+
+APLA (APL for Audio) directives render audio responses defined in APLA documents. APLA supports components like Speech, Audio, Silence, Mixer, Selector, and Sequencer.
+
+## RenderDocument
+
+Instructs the device to play the audio response defined in an APLA document.
+
+<Tabs>
+  <Tab title="Inline Document">
+    ```typescript
+    import { createAPLARenderDocumentDirective } from "alexa-apl-interface";
+
+    const directive = createAPLARenderDocumentDirective(
+      {
+        type: "APLA",
+        version: "0.91",
+        mainTemplate: {
+          item: {
+            type: "Sequencer",
+            items: [
+              { type: "Speech", content: "Welcome to the skill!" },
+              { type: "Silence", duration: 500 },
+              { type: "Audio", source: "https://example.com/chime.mp3" },
+            ],
+          },
+        },
+      },
+      "audio-token",
+      { myData: { greeting: "Hello" } }
+    );
+    ```
+  </Tab>
+  <Tab title="Linked Document">
+    ```typescript
+    import { createLinkedAPLARenderDocumentDirective } from "alexa-apl-interface";
+
+    const directive = createLinkedAPLARenderDocumentDirective(
+      "my-audio-document",
+      "audio-token",
+      { myData: { greeting: "Hello" } }
+    );
+    // Produces: doc://alexa/apla/documents/my-audio-document
+    ```
+  </Tab>
+  <Tab title="Builder Pattern">
+    ```typescript
+    import { APLARenderDocumentDirectiveBuilder } from "alexa-apl-interface";
+
+    const directive = new APLARenderDocumentDirectiveBuilder()
+      .setToken("audio-token")
+      .setDocument({
+        type: "APLA",
+        version: "0.91",
+        mainTemplate: {
+          item: { type: "Speech", content: "Hello!" },
+        },
+      })
+      .addDataSource("myData", { greeting: "Hello" })
+      .build();
+    ```
+  </Tab>
+</Tabs>
+
+### Builder Methods
+
+| Method | Description |
+|---|---|
+| `setToken(token)` | Optional. Identifier for this audio presentation. |
+| `setDocument(document)` | Set an inline APLA document. |
+| `setDocumentLink(name)` | Set a linked document reference (validates the name). |
+| `addDataSource(name, ds)` | Add a data source to bind to the document. |
+| `build()` | Returns the directive. Throws if document is missing. |
+
+### APLA Component Types
+
+| Component | Description |
+|---|---|
+| `Speech` | Text-to-speech or SSML content |
+| `Audio` | An audio file (MP3, etc.) |
+| `Silence` | A pause of specified duration (ms) |
+| `Mixer` | Plays child components simultaneously |
+| `Selector` | Picks one child to play (normal or random strategy) |
+| `Sequencer` | Plays child components in order |
+
+<Note>
+  Unlike APL, the token is optional for APLA directives. It's used to correlate RuntimeError requests back to the audio presentation.
+</Note>

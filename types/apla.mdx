@@ -1,0 +1,84 @@
+---
+title: APLA Types
+description: Types for the Alexa.Presentation.APLA interface — audio documents, components, directives, and error requests
+---
+
+Types for the APL for Audio (APLA) interface. APLA documents define audio responses using components like Speech, Audio, Silence, Mixer, Selector, and Sequencer.
+
+## APLADocument
+
+```typescript
+interface APLADocument {
+  type: "APLA" | "Link";
+  version?: string;
+  src?: string;                    // Link-type only
+  description?: string;
+  import?: APLAImport[];
+  resources?: APLAResource[];
+  mainTemplate?: APLAMainTemplate;
+}
+
+interface APLAImport { name: string; version: string; source?: string; }
+
+interface APLAResource {
+  description?: string;
+  when?: string;
+  strings?: Record<string, string>;
+  numbers?: Record<string, number>;
+  booleans?: Record<string, boolean>;
+}
+
+interface APLAMainTemplate {
+  parameters?: string[];
+  item?: APLAComponent;
+  items?: APLAComponent[];
+}
+```
+
+## APLAComponent
+
+```typescript
+interface APLAComponent {
+  type: APLAComponentType;
+  when?: boolean | string;
+  description?: string;
+  content?: string;                          // Speech
+  contentType?: "text" | "SSML";             // Speech
+  source?: string;                           // Audio
+  duration?: number;                         // Silence
+  items?: APLAComponent[];                   // Mixer, Selector, Sequencer
+  strategy?: "normal" | "random";            // Selector
+  filter?: APLAFilter[];
+}
+
+type APLAComponentType = "Speech" | "Audio" | "Silence" | "Mixer" | "Selector" | "Sequencer";
+
+interface APLAFilter { type: string; }
+```
+
+## Directive
+
+```typescript
+interface APLARenderDocumentDirective extends Directive {
+  type: "Alexa.Presentation.APLA.RenderDocument";
+  token?: string;
+  document: APLADocument;
+  datasources?: Record<string, unknown>;
+}
+```
+
+## Request
+
+```typescript
+interface APLARuntimeErrorRequest extends Request {
+  type: "Alexa.Presentation.APLA.RuntimeError";
+  token: string;
+  errors: APLARuntimeError[];
+}
+
+interface APLARuntimeError {
+  type: APLARuntimeErrorType;      // "RENDER_ERROR" | "LINK_ERROR"
+  reason: APLARuntimeErrorReason;  // "UNKNOWN_ERROR" | "INTERNAL_SERVER_ERROR" | "NOT_FOUND_ERROR"
+  message: string;
+}
+```

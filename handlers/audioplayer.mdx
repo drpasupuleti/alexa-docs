@@ -1,0 +1,123 @@
+---
+title: AudioPlayer Request Handlers
+description: Handle playback lifecycle events from the AudioPlayer interface
+---
+
+The AudioPlayer handler module processes five playback lifecycle requests and provides device capability detection and context utilities.
+
+## Type Guards
+
+```typescript
+import {
+  isAudioPlayerRequest,
+  isAudioPlayerPlaybackStarted,
+  isAudioPlayerPlaybackFinished,
+  isAudioPlayerPlaybackStopped,
+  isAudioPlayerPlaybackNearlyFinished,
+  isAudioPlayerPlaybackFailed,
+} from "alexa-apl-interface";
+```
+
+| Guard | Narrows To | Triggered When |
+|---|---|---|
+| `isAudioPlayerRequest(request)` | `boolean` | Any `AudioPlayer.*` request |
+| `isAudioPlayerPlaybackStarted(request)` | `AudioPlayerPlaybackStartedRequest` | Audio began playing |
+| `isAudioPlayerPlaybackFinished(request)` | `AudioPlayerPlaybackFinishedRequest` | Audio reached end of stream |
+| `isAudioPlayerPlaybackStopped(request)` | `AudioPlayerPlaybackStoppedRequest` | Audio was stopped (user or system) |
+| `isAudioPlayerPlaybackNearlyFinished(request)` | `AudioPlayerPlaybackNearlyFinishedRequest` | Audio is almost done — enqueue next track |
+| `isAudioPlayerPlaybackFailed(request)` | `AudioPlayerPlaybackFailedRequest` | Audio encountered an error |
+
+## Extraction Utilities
+
+### Token & Offset
+
+```typescript
+import {
+  getAudioPlayerToken,
+  getAudioPlayerOffset,
+  getAudioPlayerOffsetSeconds,
+} from "alexa-apl-interface";
+
+const token = getAudioPlayerToken(request);           // string
+const offsetMs = getAudioPlayerOffset(request);       // number (milliseconds)
+const offsetSec = getAudioPlayerOffsetSeconds(request); // number (seconds, rounded down)
+```
+
+### Error Details (PlaybackFailed only)
+
+```typescript
+import {
+  getAudioPlayerError,
+  getAudioPlayerErrorType,
+  getAudioPlayerFailureState,
+} from "alexa-apl-interface";
+
+const error = getAudioPlayerError(request);
+// { type: AudioPlayerErrorType, message: string }
+
+const errorType = getAudioPlayerErrorType(request);
+// e.g. "MEDIA_ERROR_SERVICE_UNAVAILABLE"
+
+const state = getAudioPlayerFailureState(request);
+// { token, offsetInMilliseconds, playerActivity }
+```
+
+## Context Utilities
+
+These read from the `context.AudioPlayer` object in the full skill request.
+
+```typescript
+import {
+  getAudioPlayerActivity,
+  isAudioPlaying,
+  getActiveAudioToken,
+  getActiveAudioOffset,
+} from "alexa-apl-interface";
+
+const activity = getAudioPlayerActivity(alexaRequest);
+// "IDLE" | "PLAYING" | "PAUSED" | "BUFFER_UNDERRUN" | "FINISHED" | "STOPPED"
+
+if (isAudioPlaying(alexaRequest)) {
+  const token = getActiveAudioToken(alexaRequest);
+  const offset = getActiveAudioOffset(alexaRequest);
+}
+```
+
+## Device Support
+
+```typescript
+import { supportsAudioPlayer } from "alexa-apl-interface";
+
+if (supportsAudioPlayer(alexaRequest)) {
+  // Safe to send AudioPlayer directives
+}
+```
+
+<Warning>
+  Always check `supportsAudioPlayer()` before sending AudioPlayer directives. Not all Alexa devices support audio streaming.
+</Warning>
+
+## PlaybackNearlyFinished Pattern
+
+The `PlaybackNearlyFinished` request is your cue to enqueue the next track. Respond with a `Play` directive using `ENQUEUE` behavior:
+
+```typescript
+import {
+  isAudioPlayerPlaybackNearlyFinished,
+  getAudioPlayerToken,
+} from "alexa-apl-interface";
+import { createAudioPlayerPlayDirective } from "alexa-apl-interface";
+
+if (isAudioPlayerPlaybackNearlyFinished(request)) {
+  const currentToken = getAudioPlayerToken(request);
+  const nextDirective = createAudioPlayerPlayDirective("ENQUEUE", {
+    stream: {
+      url: "https://example.com/next-track.mp3",
+      token: "track-2",
+      expectedPreviousToken: currentToken,
+      offsetInMilliseconds: 0,
+    },
+  });
+  return createDirectiveOnlyResponse([nextDirective]);
+}
+```

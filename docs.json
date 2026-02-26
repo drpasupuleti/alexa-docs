@@ -1,0 +1,136 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "maple",
+  "name": "Alexa APL Interface",
+  "description": "TypeScript SDK for the Alexa Presentation Language (APL) Interface — build rich visual, audio, and video experiences for Alexa devices.",
+  "colors": {
+    "primary": "#00CAFF",
+    "light": "#31D8FF",
+    "dark": "#0097C7"
+  },
+  "favicon": "/favicon.png",
+  "navigation": {
+    "global": {
+      "anchors": [
+        {
+          "anchor": "GitHub",
+          "icon": "github",
+          "href": "https://github.com/drpasupuleti/alexa-smart-properties-demo"
+        }
+      ]
+    },
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "project-structure"
+            ]
+          },
+          {
+            "group": "Directives",
+            "pages": [
+              "directives/overview",
+              "directives/apl",
+              "directives/apla",
+              "directives/aplt",
+              "directives/audioplayer",
+              "directives/videoapp",
+              "directives/html"
+            ]
+          },
+          {
+            "group": "Request Handlers",
+            "pages": [
+              "handlers/overview",
+              "handlers/apl",
+              "handlers/apla",
+              "handlers/audioplayer",
+              "handlers/videoapp",
+              "handlers/datastore",
+              "handlers/package-manager",
+              "handlers/html"
+            ]
+          },
+          {
+            "group": "Context Parsers",
+            "pages": [
+              "context/overview",
+              "context/viewport",
+              "context/visual-context",
+              "context/widget"
+            ]
+          },
+          {
+            "group": "Validators",
+            "pages": [
+              "validators/overview",
+              "validators/directive-validator",
+              "validators/request-validator",
+              "validators/document-name-validator"
+            ]
+          },
+          {
+            "group": "Request Router",
+            "pages": [
+              "router/overview"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Type Reference",
+        "groups": [
+          {
+            "group": "Core Types",
+            "pages": [
+              "types/common",
+              "types/apl",
+              "types/apla",
+              "types/aplt"
+            ]
+          },
+          {
+            "group": "Media Types",
+            "pages": [
+              "types/audioplayer",
+              "types/videoapp",
+              "types/html"
+            ]
+          },
+          {
+            "group": "Data & Widget Types",
+            "pages": [
+              "types/datastore",
+              "types/package-manager",
+              "types/visual-context",
+              "types/widget"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "type": "github",
+        "href": "https://github.com/drpasupuleti/alexa-smart-properties-demo"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Get Started",
+      "href": "/quickstart"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/drpasupuleti/alexa-smart-properties-demo"
+    }
+  }
+}

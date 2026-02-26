@@ -1,0 +1,221 @@
+---
+title: APL Types
+description: Types for the Alexa.Presentation.APL interface — documents, components, commands, data sources, directives, and requests
+---
+
+Types for devices with screens (Echo Show, Fire TV). Covers documents, components, commands, data sources, five directive types, and four request types.
+
+## APLDocument
+
+```typescript
+interface APLDocument {
+  type: "APL" | "Link";
+  version?: string;
+  src?: string;                              // Link-type only
+  description?: string;
+  theme?: string;
+  import?: APLImport[];
+  resources?: APLResource[];
+  styles?: Record<string, unknown>;
+  layouts?: Record<string, unknown>;
+  mainTemplate?: APLMainTemplate;
+  onMount?: APLCommand[];
+  settings?: Record<string, unknown>;
+  extensions?: APLExtensionRequest[];
+}
+
+interface APLImport { name: string; version: string; source?: string; }
+interface APLMainTemplate { parameters?: string[]; items?: APLComponent[]; item?: APLComponent; }
+interface APLExtensionRequest { name: string; uri: string; }
+```
+
+## APLComponent
+
+```typescript
+interface APLComponent {
+  type: string;
+  id?: string;
+  when?: boolean | string;
+  display?: "normal" | "invisible" | "none";
+  height?: string | number;
+  width?: string | number;
+  opacity?: number;
+  style?: string;
+  bind?: APLBind[];
+  items?: APLComponent[];
+  // ... many more properties
+}
+
+interface APLBind { name: string; value: unknown; type?: string; }
+```
+
+## APLCommand
+
+```typescript
+interface APLCommand {
+  type: string;
+  description?: string;
+  delay?: number;
+  when?: boolean | string;
+  screenLock?: boolean;
+  sequencer?: string;
+}
+```
+
+## Data Sources
+
+```typescript
+type APLDataSource = ObjectDataSource | DynamicIndexListDataSource | DynamicTokenListDataSource;
+
+interface ObjectDataSource {
+  type: "object";
+  objectId?: string;
+  properties?: Record<string, unknown>;
+  transformers?: DataSourceTransformer[];
+}
+
+interface DynamicIndexListDataSource {
+  type: "dynamicIndexList";
+  listId: string;
+  startIndex: number;
+  minimumInclusiveIndex?: number;
+  maximumExclusiveIndex?: number;
+  items: Record<string, unknown>[];
+}
+
+interface DynamicTokenListDataSource {
+  type: "dynamicTokenList";
+  listId: string;
+  pageToken: string;
+  items: Record<string, unknown>[];
+  forwardPageToken?: string;
+  backwardPageToken?: string;
+}
+```
+
+## Directive Types
+
+<AccordionGroup>
+  <Accordion title="APLRenderDocumentDirective">
+    ```typescript
+    interface APLRenderDocumentDirective extends Directive {
+      type: "Alexa.Presentation.APL.RenderDocument";
+      token: string;
+      document: APLDocument;
+      datasources?: Record<string, APLDataSource | Record<string, unknown>>;
+      sources?: Record<string, unknown>;
+    }
+    ```
+  </Accordion>
+  <Accordion title="APLExecuteCommandsDirective">
+    ```typescript
+    interface APLExecuteCommandsDirective extends Directive {
+      type: "Alexa.Presentation.APL.ExecuteCommands";
+      token?: string;
+      presentationUri?: string;  // for widgets
+      commands: APLCommand[];
+    }
+    ```
+  </Accordion>
+  <Accordion title="APLSendIndexListDataDirective">
+    ```typescript
+    interface APLSendIndexListDataDirective extends Directive {
+      type: "Alexa.Presentation.APL.SendIndexListData";
+      token: string;
+      correlationToken?: string;
+      listId: string;
+      startIndex: number;
+      minimumInclusiveIndex?: number;
+      maximumExclusiveIndex?: number;
+      items: Record<string, unknown>[];
+      listVersion?: number;
+    }
+    ```
+  </Accordion>
+  <Accordion title="APLSendTokenListDataDirective">
+    ```typescript
+    interface APLSendTokenListDataDirective extends Directive {
+      type: "Alexa.Presentation.APL.SendTokenListData";
+      token: string;
+      correlationToken?: string;
+      listId: string;
+      pageToken: string;
+      items: Record<string, unknown>[];
+      nextPageToken?: string;
+      listVersion?: number;
+    }
+    ```
+  </Accordion>
+  <Accordion title="APLUpdateIndexListDataDirective">
+    ```typescript
+    interface APLUpdateIndexListDataDirective extends Directive {
+      type: "Alexa.Presentation.APL.UpdateIndexListData";
+      token: string;
+      listId: string;
+      listVersion: number;
+      operations: IndexListOperation[];
+    }
+
+    type IndexListOperation =
+      | InsertItemOperation       // { type: "InsertItem", index, item }
+      | InsertMultipleItemsOperation // { type: "InsertMultipleItems", index, items }
+      | SetItemOperation          // { type: "SetItem", index, item }
+      | DeleteItemOperation       // { type: "DeleteItem", index }
+      | DeleteMultipleItemsOperation; // { type: "DeleteMultipleItems", index, count }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Request Types
+
+<AccordionGroup>
+  <Accordion title="APLUserEventRequest">
+    ```typescript
+    interface APLUserEventRequest extends Request {
+      type: "Alexa.Presentation.APL.UserEvent";
+      token: string;
+      arguments?: unknown[];
+      source?: UserEventSource;
+      components?: Record<string, unknown>;
+    }
+
+    interface UserEventSource {
+      type: string; handler: string; id?: string; uid?: string; value?: unknown;
+    }
+    ```
+  </Accordion>
+  <Accordion title="APLLoadIndexListDataRequest">
+    ```typescript
+    interface APLLoadIndexListDataRequest extends Request {
+      type: "Alexa.Presentation.APL.LoadIndexListData";
+      token: string;
+      correlationToken: string;
+      listId: string;
+      startIndex: number;
+      count: number;
+    }
+    ```
+  </Accordion>
+  <Accordion title="APLLoadTokenListDataRequest">
+    ```typescript
+    interface APLLoadTokenListDataRequest extends Request {
+      type: "Alexa.Presentation.APL.LoadTokenListData";
+      token: string;
+      correlationToken: string;
+      listId: string;
+      pageToken: string;
+    }
+    ```
+  </Accordion>
+  <Accordion title="APLRuntimeErrorRequest">
+    ```typescript
+    interface APLRuntimeErrorRequest extends Request {
+      type: "Alexa.Presentation.APL.RuntimeError";
+      token: string;
+      errors: APLRuntimeError[];
+    }
+
+    interface APLRuntimeError { type: string; reason: string; message: string; }
+    ```
+  </Accordion>
+</AccordionGroup>

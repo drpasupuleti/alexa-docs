@@ -1,0 +1,62 @@
+---
+title: Visual Context Types
+description: Types for APL visual context — the screen state reported to the skill when the user triggers a request
+---
+
+The visual context describes what was visible on screen when the user triggered a request. It provides both structural information (component layout) and semantic information (entities).
+
+## APLVisualContext
+
+```typescript
+interface APLVisualContext {
+  token?: string;                                    // Document token
+  version?: string;                                  // APL runtime version
+  componentsVisibleOnScreen?: VisibleComponent[];    // Visible component tree
+  presentationUri?: string;                          // Present for widget contexts
+}
+```
+
+<Note>
+  The `VisibleComponent`, `ComponentTags`, and related tag types are defined in [Common Types](/types/common). They are re-exported from the visual context module for convenience.
+</Note>
+
+## COMPONENT_TYPE_RULES
+
+A mapping from APL component type names to their visual context `type` classification:
+
+```typescript
+const COMPONENT_TYPE_RULES: Record<string, VisibleComponentType | "children"> = {
+  Container: "children",
+  EditText: "text",
+  Frame: "children",
+  FlexSequence: "children",
+  GridSequence: "children",
+  Image: "graphic",
+  Pager: "children",
+  ScrollView: "children",
+  Sequence: "children",
+  Text: "text",
+  TouchWrapper: "children",
+  VectorGraphic: "graphic",
+  Video: "video",
+};
+```
+
+Components with `"children"` derive their type from their child components.
+
+## combineTypes
+
+Combines two visual element types. Different types among `text`, `graphic`, and `video` produce `"mixed"`:
+
+```typescript
+function combineTypes(
+  a: VisibleComponentType,
+  b: VisibleComponentType,
+): VisibleComponentType;
+
+// Examples:
+combineTypes("text", "text");       // "text"
+combineTypes("text", "graphic");    // "mixed"
+combineTypes("empty", "video");     // "video"
+combineTypes("graphic", "video");   // "mixed"
+```

@@ -1,0 +1,109 @@
+---
+title: DataStore Request Handlers
+description: Handle data store error notifications when device updates fail
+---
+
+The DataStore handler module processes `DataStoreError` requests sent when a data store update fails on a device. These are notification-only requests used primarily with widgets.
+
+## Type Guard
+
+```typescript
+import { isDataStoreError } from "alexa-apl-interface";
+
+if (isDataStoreError(request)) {
+  // request is DataStoreErrorRequest
+  // Accepts both "Alexa.DataStore.DataStoreError" and "Alexa.DataStore.Error"
+}
+```
+
+## Error Type Guards
+
+Each error type has a dedicated type guard that narrows the `DataStoreError` union:
+
+```typescript
+import {
+  isDeviceUnavailableError,
+  isDevicePermanentlyUnavailableError,
+  isStorageLimitExceededError,
+  isDataStoreInternalError,
+} from "alexa-apl-interface";
+
+const error = getDataStoreError(request);
+
+if (isDeviceUnavailableError(error)) {
+  // Device was offline — retry later
+  const commands = getFailedCommands(error);
+} else if (isDevicePermanentlyUnavailableError(error)) {
+  // Device registration changed — stop retrying
+  const commands = getFailedCommands(error);
+} else if (isStorageLimitExceededError(error)) {
+  // Storage full — reduce data size
+  const failedCmd = getFailedCommand(error);
+} else if (isDataStoreInternalError(error)) {
+  // Internal error — retry
+  const failedCmd = getFailedCommand(error);
+}
+```
+
+| Guard | Error Type | Content Shape |
+|---|---|---|
+| `isDeviceUnavailableError(error)` | `DEVICE_UNAVAILABLE` | `{ deviceId, commands[] }` |
+| `isDevicePermanentlyUnavailableError(error)` | `DEVICE_PERMANENTLY_UNAVAILABLE` | `{ deviceId, commands[] }` |
+| `isStorageLimitExceededError(error)` | `STORAGE_LIMIT_EXCEEDED` | `{ deviceId, failedCommand, message? }` |
+| `isDataStoreInternalError(error)` | `DATASTORE_INTERNAL_ERROR` | `{ deviceId, failedCommand, message? }` |
+
+## Extraction Utilities
+
+```typescript
+import {
+  getDataStoreError,
+  getDataStoreErrorType,
+  getErrorDeviceId,
+  getFailedCommands,
+  getFailedCommand,
+  getErrorMessage,
+} from "alexa-apl-interface";
+
+// Get the full error object
+const error = getDataStoreError(request);
+
+// Get just the error type string
+const errorType = getDataStoreErrorType(request);
+
+// Get the device ID from any error type
+const deviceId = getErrorDeviceId(error);
+
+// For DEVICE_UNAVAILABLE / DEVICE_PERMANENTLY_UNAVAILABLE:
+const commands = getFailedCommands(error); // DataStoreCommand[]
+
+// For STORAGE_LIMIT_EXCEEDED / DATASTORE_INTERNAL_ERROR:
+const command = getFailedCommand(error);   // DataStoreCommand
+const message = getErrorMessage(error);    // string | undefined
+```
+
+## Error Types Reference
+
+<AccordionGroup>
+  <Accordion title="DEVICE_UNAVAILABLE">
+    The device was offline when the data store update was attempted. The `commands` array contains all consolidated commands that failed, ordered by original request time. You can retry these commands later.
+  </Accordion>
+  <Accordion title="DEVICE_PERMANENTLY_UNAVAILABLE">
+    The device's registration has changed (e.g., deregistered and re-registered). The `commands` array contains the failed commands. Do not retry — the device context has changed.
+  </Accordion>
+  <Accordion title="STORAGE_LIMIT_EXCEEDED">
+    The data store on the device has reached its storage limit. The `failedCommand` identifies the specific command that failed. Reduce the amount of data stored.
+  </Accordion>
+  <Accordion title="DATASTORE_INTERNAL_ERROR">
+    An internal error occurred in the data store service. The `failedCommand` identifies what failed. Safe to retry.
+  </Accordion>
+</AccordionGroup>
+
+## Handler Interface
+
+```typescript
+interface DataStoreErrorHandler {
+  canHandle(request: DataStoreErrorRequest): boolean;
+  handle(request: DataStoreErrorRequest, fullRequest: AlexaSkillRequest):
+    void | Promise<void>;  // notification only
+}
+```

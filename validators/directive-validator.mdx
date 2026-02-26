@@ -1,0 +1,99 @@
+---
+title: Directive Validator
+description: Validate directive structure and required fields before sending to Alexa
+---
+
+The directive validator checks that directives have all required fields and valid values before they are sent to the device. It supports all APL, APLA, APLT, AudioPlayer, and VideoApp directive types.
+
+## validateDirective
+
+The main entry point. Dispatches to the appropriate type-specific validator based on the directive's `type` field.
+
+```typescript
+import { validateDirective } from "alexa-apl-interface";
+
+const result = validateDirective(myDirective);
+if (!result.valid) {
+  for (const error of result.errors) {
+    console.error(`${error.field}: ${error.message}`);
+  }
+}
+```
+
+### ValidationResult
+
+```typescript
+interface ValidationResult {
+  valid: boolean;
+  errors: ValidationError[];
+}
+
+interface ValidationError {
+  field: string;    // e.g. "document.mainTemplate" or "audioItem.stream.url"
+  message: string;  // Human-readable description
+}
+```
+
+## Supported Directive Types
+
+| Directive Type | Validator | Key Checks |
+|---|---|---|
+| `Alexa.Presentation.APL.RenderDocument` | `validateAPLRenderDocument` | token, document, mainTemplate or Link src |
+| `Alexa.Presentation.APL.ExecuteCommands` | `validateAPLExecuteCommands` | token or presentationUri, commands array |
+| `Alexa.Presentation.APLA.RenderDocument` | `validateAPLARenderDocument` | document, mainTemplate or Link src |
+| `Alexa.Presentation.APLT.RenderDocument` | `validateAPLTRenderDocument` | token, document type "APLT", mainTemplate |
+| `Alexa.Presentation.APLT.ExecuteCommands` | `validateAPLTExecuteCommands` | token, commands array |
+| `AudioPlayer.Play` | `validateAudioPlayerPlay` | playBehavior, stream URL (HTTPS), token, offset |
+| `AudioPlayer.Stop` | — | No additional validation needed |
+| `AudioPlayer.ClearQueue` | `validateAudioPlayerClearQueue` | clearBehavior |
+| `VideoApp.Launch` | `validateVideoAppLaunch` | videoItem, sources (HTTPS URLs) |
+
+<Note>
+  Unrecognized directive types return an `UNRECOGNIZED_DIRECTIVE_TYPE` error. Use `isSupportedDirectiveType(type)` to check before validating.
+</Note>
+
+## Per-Type Validators
+
+Each validator can be called directly if you already know the directive type:
+
+<Tabs>
+  <Tab title="APL">
+    ```typescript
+    import { validateAPLRenderDocument } from "alexa-apl-interface";
+
+    const result = validateAPLRenderDocument(directive);
+    // Checks: token, document.type, document.mainTemplate (inline) or document.src (Link)
+    ```
+  </Tab>
+  <Tab title="AudioPlayer">
+    ```typescript
+    import { validateAudioPlayerPlay } from "alexa-apl-interface";
+
+    const result = validateAudioPlayerPlay(directive);
+    // Checks: playBehavior, stream.url (HTTPS), stream.token,
+    //         stream.offsetInMilliseconds, expectedPreviousToken (for ENQUEUE)
+    ```
+  </Tab>
+  <Tab title="VideoApp">
+    ```typescript
+    import { validateVideoAppLaunch } from "alexa-apl-interface";
+
+    const result = validateVideoAppLaunch(directive);
+    // Checks: videoItem.sources (non-empty, HTTPS URLs),
+    //         offsetInMilliseconds and sizeInBytes (non-negative)
+    ```
+  </Tab>
+</Tabs>
+
+## Checking Supported Types
+
+```typescript
+import { isSupportedDirectiveType, SUPPORTED_DIRECTIVE_TYPES } from "alexa-apl-interface";
+
+if (isSupportedDirectiveType(directive.type)) {
+  const result = validateDirective(directive);
+}
+
+// All supported types
+console.log([...SUPPORTED_DIRECTIVE_TYPES]);
+```
