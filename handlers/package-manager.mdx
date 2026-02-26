@@ -1,0 +1,106 @@
+---
+title: PackageManager Request Handlers
+description: Handle widget package lifecycle events — install, remove, update, and errors
+---
+
+The PackageManager handler module processes four request types from the `Alexa.DataStore.PackageManager` interface, covering the full widget package lifecycle.
+
+## Type Guards
+
+```typescript
+import {
+  isPackageManagerRequest,
+  isUsagesInstalled,
+  isUsagesRemoved,
+  isUpdateRequest,
+  isInstallationError,
+} from "alexa-apl-interface";
+```
+
+| Guard | Narrows To | Triggered When |
+|---|---|---|
+| `isPackageManagerRequest(request)` | `boolean` | Any PackageManager request |
+| `isUsagesInstalled(request)` | `UsagesInstalledRequest` | Package installed on a device |
+| `isUsagesRemoved(request)` | `UsagesRemovedRequest` | Package removed from a device |
+| `isUpdateRequest(request)` | `UpdateRequestRequest` | Package updated to a new version |
+| `isInstallationError(request)` | `InstallationErrorRequest` | Error during install/remove/update |
+
+## Extraction Utilities
+
+### UsagesInstalled
+
+```typescript
+import {
+  getInstalledPackageId,
+  getInstalledRequestPackageVersion,
+  getInstalledUsages,
+} from "alexa-apl-interface";
+
+const packageId = getInstalledPackageId(request);
+const version = getInstalledRequestPackageVersion(request);
+const usages = getInstalledUsages(request);
+// Array of { instanceId?, location: "FAVORITE" }
+```
+
+### UsagesRemoved
+
+```typescript
+import { getRemovedPackageId, getRemovedUsages } from "alexa-apl-interface";
+
+const packageId = getRemovedPackageId(request);
+const usages = getRemovedUsages(request);
+```
+
+### UpdateRequest
+
+```typescript
+import { getUpdatePackageId, getUpdateVersions } from "alexa-apl-interface";
+
+const packageId = getUpdatePackageId(request);
+const { fromVersion, toVersion } = getUpdateVersions(request);
+```
+
+### InstallationError
+
+```typescript
+import { getInstallationError } from "alexa-apl-interface";
+
+const error = getInstallationError(request);
+// { type: "PACKAGEMANAGER_INTERNAL_ERROR", content: Record<string, unknown> } | undefined
+```
+
+## Widget Lifecycle Pattern
+
+<Steps>
+  <Step title="Package Installed">
+    Alexa sends `UsagesInstalled` when a user adds your widget. Use this to populate the data store with initial widget data.
+  </Step>
+  <Step title="Package Updated">
+    Alexa sends `UpdateRequest` when a new version is deployed. Migrate data store content to match the new widget version.
+  </Step>
+  <Step title="Package Removed">
+    Alexa sends `UsagesRemoved` when a user removes the widget. Clean up data store entries for the removed widget.
+  </Step>
+  <Step title="Error Handling">
+    Alexa sends `InstallationError` if any lifecycle operation fails. Log the error for debugging.
+  </Step>
+</Steps>
+
+## Handler Interfaces
+
+```typescript
+interface UsagesInstalledHandler {
+  canHandle(request: UsagesInstalledRequest): boolean;
+  handle(request: UsagesInstalledRequest, fullRequest: AlexaSkillRequest):
+    AlexaSkillResponse | Promise<AlexaSkillResponse>;
+}
+
+interface UsagesRemovedHandler { /* same pattern */ }
+interface UpdateRequestHandler { /* same pattern */ }
+
+interface InstallationErrorHandler {
+  canHandle(request: InstallationErrorRequest): boolean;
+  handle(request: InstallationErrorRequest, fullRequest: AlexaSkillRequest):
+    void | Promise<void>;  // notification only
+}
+```

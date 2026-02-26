@@ -1,0 +1,31 @@
+---
+title: Widget Types
+description: Types for widget context information — widget visual context and presentation contexts
+---
+
+Types for widget information included in skill requests. When the skill includes a widget, requests may contain additional context about visible widgets.
+
+## WidgetContext
+
+Represents the visual context for a single widget visible on the device:
+
+```typescript
+interface WidgetContext {
+  presentationUri: string;
+  componentsVisibleOnScreen?: VisibleComponent[];
+}
+```
+
+The `componentsVisibleOnScreen` array uses the same `VisibleComponent` structure as the standard [APL visual context](/types/visual-context).
+
+## AlexaPresentationWidgetContexts
+
+The container object found at `context["Alexa.Presentation"]` when widgets are present:
+
+```typescript
+interface AlexaPresentationWidgetContexts {
+  contexts: WidgetContext[];
+}
+```
+
+Each entry in the `contexts` array represents a visible widget associated with your skill. Use the [Widget Context Parser](/context/widget) utilities to extract and work with these contexts.

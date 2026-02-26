@@ -1,0 +1,147 @@
+---
+title: Viewport Parser
+description: Detect device capabilities, extract viewport dimensions, and query extensions
+---
+
+The viewport parser provides utilities for understanding the device's display capabilities, supported interfaces, and available extensions.
+
+## Interface Support Detection
+
+```typescript
+import {
+  supportsAPL,
+  supportsAPLA,
+  supportsAPLT,
+  getAPLMaxVersion,
+  getAPLTMaxVersion,
+  getSupportedInterfaces,
+} from "alexa-apl-interface";
+
+if (supportsAPL(request)) {
+  const version = getAPLMaxVersion(request); // e.g. "2024.3"
+}
+
+if (supportsAPLT(request)) {
+  const version = getAPLTMaxVersion(request);
+}
+
+// Get the full interfaces map
+const interfaces = getSupportedInterfaces(request);
+```
+
+| Function | Returns | Description |
+|---|---|---|
+| `supportsAPL(request)` | `boolean` | Device has a screen (Echo Show, Fire TV) |
+| `supportsAPLA(request)` | `boolean` | Device supports audio rendering |
+| `supportsAPLT(request)` | `boolean` | Device has a character display (Echo Dot with clock) |
+| `getAPLMaxVersion(request)` | `string \| undefined` | Max APL runtime version |
+| `getAPLTMaxVersion(request)` | `string \| undefined` | Max APLT runtime version |
+
+## Additional Interfaces
+
+```typescript
+import { hasAdditionalInterface, getAdditionalInterface } from "alexa-apl-interface";
+
+if (hasAdditionalInterface(request, "Alexa.RemoteVideoPlayer")) {
+  const config = getAdditionalInterface(request, "Alexa.RemoteVideoPlayer");
+}
+```
+
+## Viewport Extraction
+
+### Primary Viewport
+
+```typescript
+import {
+  getViewport,
+  getViewportPixelSize,
+  getCurrentViewportPixelSize,
+  getViewportDPI,
+  getViewportShape,
+  supportsTouch,
+  supportsKeyboard,
+  getSupportedVideoCodecs,
+} from "alexa-apl-interface";
+
+const viewport = getViewport(request);
+const size = getViewportPixelSize(request);
+// { pixelWidth: 1280, pixelHeight: 800 }
+
+const currentSize = getCurrentViewportPixelSize(request);
+// May differ if viewport was resized
+
+const dpi = getViewportDPI(request);       // number
+const shape = getViewportShape(request);   // "RECTANGLE" | "ROUND"
+const touch = supportsTouch(request);      // boolean
+const keyboard = supportsKeyboard(request); // boolean
+const codecs = getSupportedVideoCodecs(request); // string[]
+```
+
+### Viewports Array
+
+```typescript
+import {
+  getViewports,
+  getViewportsByType,
+  getAPLViewport,
+  getAPLTViewport,
+  isAPLViewport,
+  isAPLTViewport,
+} from "alexa-apl-interface";
+
+const allViewports = getViewports(request);
+const aplViewports = getViewportsByType(request, "APL");
+
+const screenViewport = getAPLViewport(request);   // APLViewportObject | undefined
+const clockViewport = getAPLTViewport(request);    // APLTViewportObject | undefined
+
+// Type guards for the ViewportObject union
+for (const vp of allViewports) {
+  if (isAPLViewport(vp)) {
+    console.log(`Screen: ${vp.pixelWidth}x${vp.pixelHeight}`);
+  } else if (isAPLTViewport(vp)) {
+    console.log(`Character display: ${vp.lineLength} chars`);
+  }
+}
+```
+
+## APLT Viewport Utilities
+
+For devices with character displays (e.g., Echo Dot with clock):
+
+```typescript
+import {
+  getAPLTSupportedProfiles,
+  getAPLTCharacterFormat,
+  getAPLTDisplaySize,
+  getAPLTInterSegments,
+} from "alexa-apl-interface";
+
+const apltViewport = getAPLTViewport(request);
+if (apltViewport) {
+  const profiles = getAPLTSupportedProfiles(apltViewport);
+  // ["FOUR_CHARACTER_CLOCK"]
+
+  const format = getAPLTCharacterFormat(apltViewport);
+  // "SEVEN_SEGMENT"
+
+  const size = getAPLTDisplaySize(apltViewport);
+  // { lineLength: 4, lineCount: 1 }
+
+  const segments = getAPLTInterSegments(apltViewport);
+  // [{ x: 1, y: 0, characters: ":" }]
+}
+```
+
+## Extensions
+
+```typescript
+import { getAvailableExtensions, isExtensionAvailable } from "alexa-apl-interface";
+
+const extensions = getAvailableExtensions(request);
+// Record<string, Record<string, unknown>>
+
+if (isExtensionAvailable(request, "alexaext:smartmotion:10")) {
+  // Smart Motion extension is available
+}
+```

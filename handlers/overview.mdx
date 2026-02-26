@@ -1,0 +1,61 @@
+---
+title: Request Handlers
+description: Handle incoming requests from Alexa devices with type guards, extraction utilities, and response helpers
+---
+
+Request handlers process incoming events from Alexa devices — user interactions, playback lifecycle events, data store errors, and package manager notifications.
+
+Each handler module follows a consistent pattern:
+
+<CardGroup cols={3}>
+  <Card title="Type Guards" icon="shield-check">
+    Narrow `Request` to a specific type with functions like `isAPLUserEvent()` or `isAudioPlayerPlaybackStarted()`.
+  </Card>
+  <Card title="Extraction Utilities" icon="arrow-down-to-bracket">
+    Pull structured data from typed requests — arguments, tokens, offsets, errors, and more.
+  </Card>
+  <Card title="Handler Interfaces" icon="plug">
+    TypeScript interfaces with `canHandle()` and `handle()` methods for building pluggable handler chains.
+  </Card>
+</CardGroup>
+
+## Supported Interfaces
+
+| Module | Request Types | Description |
+|---|---|---|
+| [APL](/handlers/apl) | UserEvent, LoadIndexListData, LoadTokenListData, RuntimeError | Screen interactions and dynamic list data |
+| [APLA](/handlers/apla) | RuntimeError | Audio rendering errors |
+| [AudioPlayer](/handlers/audioplayer) | PlaybackStarted, Finished, Stopped, NearlyFinished, Failed | Audio playback lifecycle |
+| [VideoApp](/handlers/videoapp) | PlaybackStarted, Finished, Stopped, Failed | Video playback lifecycle |
+| [DataStore](/handlers/datastore) | DataStoreError | Device data store update failures |
+| [PackageManager](/handlers/package-manager) | UsagesInstalled, UsagesRemoved, UpdateRequest, InstallationError | Widget package lifecycle |
+| [HTML](/handlers/html) | Message | Web app ↔ skill messaging |
+
+## Usage Pattern
+
+```typescript
+import { isAPLUserEvent, getUserEventArguments, createAPLResponse } from "alexa-apl-interface";
+
+export function handleRequest(alexaRequest: AlexaSkillRequest): AlexaSkillResponse {
+  const request = alexaRequest.request;
+
+  // 1. Use type guard to identify the request
+  if (isAPLUserEvent(request)) {
+    // 2. Extract data from the typed request
+    const args = getUserEventArguments(request);
+    const action = args[0] as string;
+
+    // 3. Build and return a response
+    return createAPLResponse({
+      speech: `You selected ${action}`,
+      shouldEndSession: false,
+    });
+  }
+
+  return createAPLResponse({ speech: "I didn't understand that." });
+}
+```
+
+<Info>
+  For automatic routing across all request types, see the [Request Router](/router/overview) which dispatches to your handlers based on the request type.
+</Info>

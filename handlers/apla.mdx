@@ -1,0 +1,75 @@
+---
+title: APLA Request Handlers
+description: Handle RuntimeError requests from the APLA audio interface
+---
+
+The APLA request handler module processes `RuntimeError` requests from the `Alexa.Presentation.APLA` interface. These are notification-only — the skill cannot return a meaningful response.
+
+## Type Guard
+
+```typescript
+import { isAPLARuntimeError } from "alexa-apl-interface";
+
+if (isAPLARuntimeError(request)) {
+  // request is APLARuntimeErrorRequest
+}
+```
+
+## Extraction Utilities
+
+```typescript
+import { getAPLARuntimeErrors } from "alexa-apl-interface";
+
+const errors = getAPLARuntimeErrors(request);
+// Array of { type: APLARuntimeErrorType, reason: APLARuntimeErrorReason, message: string }
+```
+
+## Error Classification
+
+```typescript
+import { isRenderError, isLinkError, isNotFoundError } from "alexa-apl-interface";
+
+for (const error of errors) {
+  if (isNotFoundError(error)) {
+    // Linked document was not found — check document.src
+    console.error(`Document not found: ${error.message}`);
+  } else if (isLinkError(error)) {
+    // Other link resolution error
+    console.error(`Link error: ${error.message}`);
+  } else if (isRenderError(error)) {
+    // Error during audio rendering
+    console.error(`Render error: ${error.message}`);
+  }
+}
+```
+
+| Classifier | Checks | Description |
+|---|---|---|
+| `isRenderError(error)` | `type === "RENDER_ERROR"` | Error during audio rendering |
+| `isLinkError(error)` | `type === "LINK_ERROR"` | Error resolving a linked document |
+| `isNotFoundError(error)` | `type === "LINK_ERROR"` + `reason === "NOT_FOUND_ERROR"` | Linked document was not found |
+
+## Error Types
+
+| Type | Description |
+|---|---|
+| `RENDER_ERROR` | An error occurred while rendering the APLA document |
+| `LINK_ERROR` | An error occurred resolving a linked document reference |
+
+## Error Reasons
+
+| Reason | Description |
+|---|---|
+| `UNKNOWN_ERROR` | An unknown error occurred |
+| `INTERNAL_SERVER_ERROR` | Internal server error during processing |
+| `NOT_FOUND_ERROR` | The referenced document was not found |
+
+## Handler Interface
+
+```typescript
+interface APLARuntimeErrorHandler {
+  canHandle(request: APLARuntimeErrorRequest): boolean;
+  handle(request: APLARuntimeErrorRequest, fullRequest: AlexaSkillRequest):
+    void | Promise<void>;  // notification only
+}
+```

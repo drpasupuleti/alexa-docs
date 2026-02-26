@@ -1,0 +1,183 @@
+---
+title: APL Directives
+description: Build directives for screen devices using Alexa.Presentation.APL
+---
+
+The APL directive builders create directives for devices with screens (Echo Show, Fire TV, etc.). Five directive types are supported.
+
+## RenderDocument
+
+Instructs the device to display an APL document. Supports both inline documents and linked documents saved in the Alexa developer console.
+
+<Tabs>
+  <Tab title="Factory Function">
+    ```typescript
+    import { createRenderDocumentDirective } from "alexa-apl-interface";
+
+    const directive = createRenderDocumentDirective(
+      "my-token",
+      {
+        type: "APL",
+        version: "2024.3",
+        mainTemplate: {
+          items: [{ type: "Text", text: "Hello!" }],
+        },
+      },
+      {
+        myData: {
+          type: "object",
+          properties: { title: "Welcome" },
+        },
+      }
+    );
+    ```
+  </Tab>
+  <Tab title="Builder Pattern">
+    ```typescript
+    import { RenderDocumentDirectiveBuilder } from "alexa-apl-interface";
+
+    const directive = new RenderDocumentDirectiveBuilder()
+      .setToken("my-token")
+      .setDocument({
+        type: "APL",
+        version: "2024.3",
+        mainTemplate: {
+          items: [{ type: "Text", text: "Hello!" }],
+        },
+      })
+      .addDataSource("myData", {
+        type: "object",
+        properties: { title: "Welcome" },
+      })
+      .build();
+    ```
+  </Tab>
+  <Tab title="Linked Document">
+    ```typescript
+    import { createLinkedRenderDocumentDirective } from "alexa-apl-interface";
+
+    // References a document saved in the Alexa developer console
+    const directive = createLinkedRenderDocumentDirective(
+      "my-token",
+      "my-saved-document",
+      { myData: { type: "object", properties: {} } }
+    );
+    // Produces: doc://alexa/apl/documents/my-saved-document
+    ```
+
+    <Warning>
+      Document names are validated to prevent path traversal. Only alphanumeric characters, hyphens, underscores, and periods are allowed (1–128 chars). Sequences like `..` are rejected.
+    </Warning>
+  </Tab>
+</Tabs>
+
+### Builder Methods
+
+| Method | Description |
+|---|---|
+| `setToken(token)` | Required. Unique identifier for this document presentation. |
+| `setDocument(document)` | Set an inline APL document. |
+| `setDocumentLink(name)` | Set a linked document reference (validates the name). |
+| `addDataSource(name, ds)` | Add a data source to bind to the document. |
+| `addSource(name, source)` | Add a named APLA document source (audio within APL). |
+| `build()` | Returns the directive. Throws if token or document is missing. |
+
+## ExecuteCommands
+
+Runs commands on a currently rendered document or widget.
+
+<Tabs>
+  <Tab title="Standard Document">
+    ```typescript
+    import { createExecuteCommandsDirective } from "alexa-apl-interface";
+
+    const directive = createExecuteCommandsDirective("my-token", [
+      {
+        type: "SpeakItem",
+        componentId: "myTextComponent",
+      },
+      {
+        type: "ScrollToIndex",
+        componentId: "myList",
+        index: 5,
+      },
+    ]);
+    ```
+  </Tab>
+  <Tab title="Widget">
+    ```typescript
+    import { createWidgetExecuteCommandsDirective } from "alexa-apl-interface";
+
+    const directive = createWidgetExecuteCommandsDirective(
+      "amzn1:alexa:apl:widget:123",
+      [{ type: "SetValue", componentId: "score", property: "text", value: "42" }]
+    );
+    ```
+  </Tab>
+</Tabs>
+
+## SendIndexListData
+
+Responds to a `LoadIndexListData` request with the next batch of items for a `dynamicIndexList` data source.
+
+```typescript
+import { SendIndexListDataDirectiveBuilder } from "alexa-apl-interface";
+
+const directive = new SendIndexListDataDirectiveBuilder()
+  .setToken("my-token")
+  .setCorrelationToken(request.correlationToken)
+  .setListId("my-list")
+  .setStartIndex(10)
+  .setItems([
+    { primaryText: "Item 11" },
+    { primaryText: "Item 12" },
+  ])
+  .setMinimumInclusiveIndex(0)
+  .setMaximumExclusiveIndex(50)
+  .build();
+```
+
+## SendTokenListData
+
+Responds to a `LoadTokenListData` request with the next page of items for a `dynamicTokenList` data source.
+
+```typescript
+import { SendTokenListDataDirectiveBuilder } from "alexa-apl-interface";
+
+const directive = new SendTokenListDataDirectiveBuilder()
+  .setToken("my-token")
+  .setCorrelationToken(request.correlationToken)
+  .setListId("my-list")
+  .setPageToken("page-2")
+  .setItems([{ primaryText: "Page 2 Item 1" }])
+  .setNextPageToken("page-3")
+  .build();
+```
+
+## UpdateIndexListData
+
+Sends insert, set, and delete operations to modify an existing `dynamicIndexList` on the device.
+
+```typescript
+import { UpdateIndexListDataDirectiveBuilder } from "alexa-apl-interface";
+
+const directive = new UpdateIndexListDataDirectiveBuilder()
+  .setToken("my-token")
+  .setListId("my-list")
+  .setListVersion(2)
+  .insertItem(0, { primaryText: "New first item" })
+  .setItem(5, { primaryText: "Updated item 5" })
+  .deleteItem(10)
+  .deleteMultipleItems(15, 3)
+  .build();
+```
+
+### Available Operations
+
+| Operation | Method | Description |
+|---|---|---|
+| InsertItem | `insertItem(index, item)` | Insert a single item at the given index |
+| InsertMultipleItems | `insertMultipleItems(index, items)` | Insert multiple items starting at the given index |
+| SetItem | `setItem(index, item)` | Replace the item at the given index |
+| DeleteItem | `deleteItem(index)` | Delete the item at the given index |
+| DeleteMultipleItems | `deleteMultipleItems(index, count)` | Delete `count` items starting at the given index |

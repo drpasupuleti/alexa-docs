@@ -1,0 +1,136 @@
+---
+title: Visual Context Parser
+description: Search visible components, extract tags, parse positions, and check visibility
+---
+
+The visual context parser provides utilities for inspecting what was visible on screen when the user triggered a request. The visual context is available under `context["Alexa.Presentation.APL"]` in the skill request.
+
+## Visual Context Extraction
+
+```typescript
+import {
+  getVisualContext,
+  getVisualContextToken,
+  getVisualContextVersion,
+  getComponentsVisibleOnScreen,
+} from "alexa-apl-interface";
+
+const ctx = getVisualContext(request);
+const token = getVisualContextToken(request);     // document token
+const version = getVisualContextVersion(request); // APL runtime version
+const components = getComponentsVisibleOnScreen(request);
+```
+
+## Component Search
+
+### By ID or UID
+
+```typescript
+import { findComponentById, findComponentByUid } from "alexa-apl-interface";
+
+const component = findComponentById(components, "myButton");
+const byUid = findComponentByUid(components, "1024");
+```
+
+Both functions search the entire component hierarchy recursively.
+
+### By Predicate
+
+```typescript
+import { findComponents } from "alexa-apl-interface";
+
+// Find all text components
+const textComponents = findComponents(components, (c) => c.type === "text");
+
+// Find components with a specific entity
+const tagged = findComponents(components, (c) =>
+  c.entities?.some((e) => e.type === "product")
+);
+```
+
+### Convenience Finders
+
+```typescript
+import {
+  findClickableComponents,
+  findFocusedComponents,
+  findCheckedComponents,
+  findDisabledComponents,
+} from "alexa-apl-interface";
+
+const clickable = findClickableComponents(components);
+const focused = findFocusedComponents(components);
+const checked = findCheckedComponents(components);
+const disabled = findDisabledComponents(components);
+```
+
+## Tag Extraction
+
+Components carry tags that describe their semantic state:
+
+```typescript
+import {
+  getListTag,
+  getMediaTag,
+  getPagerTag,
+  getScrollableTag,
+  getOrdinal,
+} from "alexa-apl-interface";
+
+const list = getListTag(component);
+// { itemCount, lowestIndexSeen, highestIndexSeen, lowestOrdinalSeen?, highestOrdinalSeen? }
+
+const media = getMediaTag(component);
+// { state, positionInMilliseconds, muted, url, audioTrack, ... }
+
+const pager = getPagerTag(component);
+// { index, pageCount, allowForward, allowBackwards }
+
+const scrollable = getScrollableTag(component);
+// { direction, allowForward, allowBackwards }
+
+const ordinal = getOrdinal(component);
+// number | undefined
+```
+
+## Position Parsing
+
+Component positions are encoded as strings in the format `WxH+X+Y:L`:
+
+```typescript
+import { parsePosition, encodePosition } from "alexa-apl-interface";
+
+const pos = parsePosition("960x480+0+0:0");
+// { width: 960, height: 480, x: 0, y: 0, layer: 0 }
+
+const pos2 = parsePosition("273x76+344+360:0");
+// { width: 273, height: 76, x: 344, y: 360, layer: 0 }
+
+// Encode back to string
+const str = encodePosition(pos);
+// "960x480+0+0:0"
+```
+
+## Visibility Utilities
+
+```typescript
+import {
+  getEffectiveVisibility,
+  isFullyVisible,
+  isPartiallyVisible,
+  flattenComponents,
+} from "alexa-apl-interface";
+
+const visibility = getEffectiveVisibility(component);
+// 1.0 when fully visible (default when omitted)
+
+if (isFullyVisible(component)) { /* visibility === 1.0 */ }
+if (isPartiallyVisible(component)) { /* 0 < visibility < 1.0 */ }
+
+// Flatten the entire hierarchy into a single array
+const allComponents = flattenComponents(components);
+```
+
+<Note>
+  The `visibility` property is omitted from the visual context when a component is fully visible (1.0). The `getEffectiveVisibility()` function handles this by returning 1.0 as the default.
+</Note>

@@ -1,0 +1,82 @@
+---
+title: APLT Directives
+description: Build directives for character displays using Alexa.Presentation.APLT
+---
+
+APLT directives target devices with character displays, such as the LED 7-segment alphanumeric clock on the Echo Dot with clock.
+
+## RenderDocument
+
+Displays content on the character display.
+
+<Tabs>
+  <Tab title="Factory Function">
+    ```typescript
+    import { createAPLTRenderDocumentDirective } from "alexa-apl-interface";
+
+    const directive = createAPLTRenderDocumentDirective(
+      "clock-token",
+      {
+        type: "APLT",
+        version: "1.0",
+        mainTemplate: {
+          item: {
+            type: "TimeText",
+            format: "hh:mm",
+          },
+        },
+      },
+      undefined,
+      "FOUR_CHARACTER_CLOCK"
+    );
+    ```
+  </Tab>
+  <Tab title="Builder Pattern">
+    ```typescript
+    import { APLTRenderDocumentDirectiveBuilder } from "alexa-apl-interface";
+
+    const directive = new APLTRenderDocumentDirectiveBuilder()
+      .setToken("clock-token")
+      .setTargetProfile("FOUR_CHARACTER_CLOCK")
+      .setDocument({
+        type: "APLT",
+        version: "1.0",
+        mainTemplate: {
+          item: { type: "Text", text: "Hi!" },
+        },
+      })
+      .addDataSource("myData", { message: "Hello" })
+      .build();
+    ```
+  </Tab>
+</Tabs>
+
+## ExecuteCommands
+
+Runs commands on the currently rendered APLT document.
+
+```typescript
+import { createAPLTExecuteCommandsDirective } from "alexa-apl-interface";
+
+const directive = createAPLTExecuteCommandsDirective("clock-token", [
+  {
+    type: "SetValue",
+    componentId: "myText",
+    property: "text",
+    value: "Done",
+  },
+]);
+```
+
+### APLT Component Types
+
+| Component | Description |
+|---|---|
+| `Text` | Static text on the character display |
+| `Container` | Groups multiple child components |
+| `Pager` | Cycles through child components |
+| `TimeText` | Displays the current time in a specified format |
+
+<Info>
+  The `targetProfile` is currently always `FOUR_CHARACTER_CLOCK`. It can be omitted since there's only one profile.
+</Info>

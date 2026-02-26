@@ -1,0 +1,178 @@
+---
+title: Request Router
+description: Automatically dispatch incoming requests to the appropriate handler based on request type
+---
+
+The `APLRequestRouter` provides a centralized routing framework that dispatches incoming Alexa requests to your handlers based on the request type. It supports all APL, APLA, AudioPlayer, VideoApp, DataStore, and PackageManager request types.
+
+## Basic Usage
+
+```typescript
+import { APLRequestRouter, createAPLResponse, createDirectiveOnlyResponse } from "alexa-apl-interface";
+
+const router = new APLRequestRouter({
+  onUserEvent: (request, fullRequest) => {
+    const args = request.arguments ?? [];
+    return createAPLResponse({ speech: `You selected ${args[0]}` });
+  },
+
+  onLoadIndexListData: (request, fullRequest) => {
+    return createDirectiveOnlyResponse([sendIndexListDataDirective]);
+  },
+
+  onAPLRuntimeError: (request, fullRequest) => {
+    console.error("APL errors:", request.errors);
+  },
+});
+
+// In your skill handler:
+if (router.canHandle(alexaRequest)) {
+  const response = await router.handle(alexaRequest);
+}
+```
+
+## APLRouterConfig
+
+The configuration object maps request types to handler callbacks:
+
+<AccordionGroup>
+  <Accordion title="APL Handlers">
+    | Property | Request Type | Callback Type |
+    |---|---|---|
+    | `onUserEvent` | `Alexa.Presentation.APL.UserEvent` | `RequestHandlerCallback` |
+    | `onLoadIndexListData` | `Alexa.Presentation.APL.LoadIndexListData` | `RequestHandlerCallback` |
+    | `onLoadTokenListData` | `Alexa.Presentation.APL.LoadTokenListData` | `RequestHandlerCallback` |
+    | `onAPLRuntimeError` | `Alexa.Presentation.APL.RuntimeError` | `NotificationHandlerCallback` |
+  </Accordion>
+  <Accordion title="APLA Handlers">
+    | Property | Request Type | Callback Type |
+    |---|---|---|
+    | `onAPLARuntimeError` | `Alexa.Presentation.APLA.RuntimeError` | `NotificationHandlerCallback` |
+  </Accordion>
+  <Accordion title="AudioPlayer Handlers">
+    | Property | Request Type | Callback Type |
+    |---|---|---|
+    | `onAudioPlaybackStarted` | `AudioPlayer.PlaybackStarted` | `NotificationHandlerCallback` |
+    | `onAudioPlaybackFinished` | `AudioPlayer.PlaybackFinished` | `NotificationHandlerCallback` |
+    | `onAudioPlaybackStopped` | `AudioPlayer.PlaybackStopped` | `NotificationHandlerCallback` |
+    | `onAudioPlaybackNearlyFinished` | `AudioPlayer.PlaybackNearlyFinished` | `RequestHandlerCallback` |
+    | `onAudioPlaybackFailed` | `AudioPlayer.PlaybackFailed` | `NotificationHandlerCallback` |
+  </Accordion>
+  <Accordion title="VideoApp Handlers">
+    | Property | Request Type | Callback Type |
+    |---|---|---|
+    | `onVideoPlaybackStarted` | `VideoApp.PlaybackStarted` | `NotificationHandlerCallback` |
+    | `onVideoPlaybackFinished` | `VideoApp.PlaybackFinished` | `NotificationHandlerCallback` |
+    | `onVideoPlaybackStopped` | `VideoApp.PlaybackStopped` | `NotificationHandlerCallback` |
+    | `onVideoPlaybackFailed` | `VideoApp.PlaybackFailed` | `NotificationHandlerCallback` |
+  </Accordion>
+  <Accordion title="DataStore Handlers">
+    | Property | Request Type | Callback Type |
+    |---|---|---|
+    | `onDataStoreError` | `Alexa.DataStore.DataStoreError` | `NotificationHandlerCallback` |
+  </Accordion>
+  <Accordion title="PackageManager Handlers">
+    | Property | Request Type | Callback Type |
+    |---|---|---|
+    | `onUsagesInstalled` | `Alexa.DataStore.PackageManager.UsagesInstalled` | `RequestHandlerCallback` |
+    | `onUsagesRemoved` | `Alexa.DataStore.PackageManager.UsagesRemoved` | `RequestHandlerCallback` |
+    | `onUpdateRequest` | `Alexa.DataStore.PackageManager.UpdateRequest` | `RequestHandlerCallback` |
+    | `onInstallationError` | `Alexa.DataStore.PackageManager.InstallationError` | `NotificationHandlerCallback` |
+  </Accordion>
+  <Accordion title="Fallback">
+    | Property | Description |
+    |---|---|
+    | `onUnhandled` | Called when no specific handler matches the request type |
+  </Accordion>
+</AccordionGroup>
+
+## Callback Types
+
+```typescript
+// For requests that expect a response (UserEvent, LoadIndexListData, etc.)
+type RequestHandlerCallback<T> = (
+  request: T,
+  fullRequest: AlexaSkillRequest,
+) => AlexaSkillResponse | Promise<AlexaSkillResponse>;
+
+// For notification-only requests (RuntimeError, PlaybackStarted, etc.)
+type NotificationHandlerCallback<T> = (
+  request: T,
+  fullRequest: AlexaSkillRequest,
+) => void | Promise<void>;
+```
+
+<Note>
+  Notification handlers return `void` — the router automatically returns an empty response for these request types.
+</Note>
+
+## isAPLRequest
+
+Standalone utility to check if a request is any APL-related type handled by the router:
+
+```typescript
+import { isAPLRequest } from "alexa-apl-interface";
+
+if (isAPLRequest(alexaRequest.request)) {
+  // Matches: Alexa.Presentation.APL.*, Alexa.Presentation.APLA.*,
+  //          AudioPlayer.*, VideoApp.*, Alexa.DataStore.*
+}
+```
+
+## Full Example
+
+```typescript
+import {
+  APLRequestRouter,
+  createAPLResponse,
+  createDirectiveOnlyResponse,
+  getUserEventArguments,
+  isRequestFresh,
+} from "alexa-apl-interface";
+
+const router = new APLRequestRouter({
+  onUserEvent: (request, fullRequest) => {
+    if (!isRequestFresh(fullRequest)) {
+      return createAPLResponse({ speech: "Request expired." });
+    }
+    const [action, itemId] = getUserEventArguments(request) as [string, string];
+    return createAPLResponse({
+      speech: `Selected ${action} on ${itemId}`,
+      shouldEndSession: false,
+    });
+  },
+
+  onAudioPlaybackNearlyFinished: (request, fullRequest) => {
+    const nextTrack = getNextTrack(request.token);
+    return createDirectiveOnlyResponse([
+      createAudioPlayerPlayDirective("ENQUEUE", nextTrack),
+    ]);
+  },
+
+  onAudioPlaybackFailed: (request) => {
+    console.error(`Playback failed: ${request.error.message}`);
+  },
+
+  onDataStoreError: (request) => {
+    console.error(`DataStore error: ${request.error.type}`);
+  },
+
+  onUsagesInstalled: (request) => {
+    // Populate data store for new widget
+    return createAPLResponse({ shouldEndSession: true });
+  },
+
+  onUnhandled: (request) => {
+    console.warn(`Unhandled request type: ${request.type}`);
+    return createAPLResponse({ speech: "I can't handle that yet." });
+  },
+});
+
+// Use in your Lambda handler
+export async function handler(event: AlexaSkillRequest) {
+  if (router.canHandle(event)) {
+    return router.handle(event);
+  }
+  // Handle non-APL requests (LaunchRequest, IntentRequest, etc.)
+}
+```

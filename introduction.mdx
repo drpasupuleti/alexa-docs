@@ -1,0 +1,56 @@
+---
+title: Introduction
+description: TypeScript SDK for the Alexa Presentation Language (APL) Interface Reference
+---
+
+<img
+  className="block dark:hidden"
+  src="/images/hero-light.png"
+  alt="Alexa APL Interface"
+/>
+<img
+  className="hidden dark:block"
+  src="/images/hero-dark.png"
+  alt="Alexa APL Interface"
+/>
+
+## What is alexa-apl-interface?
+
+A complete TypeScript implementation of the Alexa Presentation Language (APL) Interface Reference. This library provides type-safe directive builders, request handlers, context parsers, validators, and a request router for building rich Alexa skill experiences.
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Install the library and send your first APL directive in minutes.
+  </Card>
+  <Card title="Directives" icon="paper-plane" href="/directives/overview">
+    Build directives for APL, APLA, APLT, AudioPlayer, VideoApp, and HTML.
+  </Card>
+  <Card title="Request Handlers" icon="inbox" href="/handlers/overview">
+    Handle incoming requests with type guards and extraction utilities.
+  </Card>
+  <Card title="Type Reference" icon="code" href="/types/common">
+    Explore the full TypeScript type definitions for every interface.
+  </Card>
+</CardGroup>
+
+## Supported Interfaces
+
+| Interface | Directives | Requests | Description |
+|---|---|---|---|
+| `Alexa.Presentation.APL` | RenderDocument, ExecuteCommands, SendIndexListData, SendTokenListData, UpdateIndexListData | UserEvent, LoadIndexListData, LoadTokenListData, RuntimeError | Screen devices (Echo Show, Fire TV) |
+| `Alexa.Presentation.APLA` | RenderDocument | RuntimeError | Audio rendering |
+| `Alexa.Presentation.APLT` | RenderDocument, ExecuteCommands | — | Character displays (Echo Dot clock) |
+| `Alexa.Presentation.HTML` | Start, HandleMessage | Message | Web content on screen devices |
+| `AudioPlayer` | Play, Stop, ClearQueue | PlaybackStarted, PlaybackFinished, PlaybackStopped, PlaybackNearlyFinished, PlaybackFailed | Long-form audio streaming |
+| `VideoApp` | Launch | PlaybackStarted, PlaybackFinished, PlaybackStopped, PlaybackFailed | Full-screen native video |
+| `Alexa.DataStore` | — | DataStoreError | Data store error notifications |
+| `Alexa.DataStore.PackageManager` | — | UsagesInstalled, UsagesRemoved, UpdateRequest, InstallationError | Widget package lifecycle |
+
+## Key Features
+
+- **Type-safe builders** — Fluent builder pattern with compile-time validation for all directives
+- **Request type guards** — Narrow request types safely with `isAPLUserEvent()`, `isAudioPlayerPlaybackFailed()`, etc.
+- **Context parsers** — Extract viewport capabilities, visual context hierarchies, and widget state
+- **Validation utilities** — Runtime validation for directives and request timestamp freshness
+- **Request router** — Route incoming requests to the correct handler with a single configuration object
+- **Zero dependencies** — Only requires TypeScript ≥ 5.3

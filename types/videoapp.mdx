@@ -1,0 +1,84 @@
+---
+title: VideoApp Types
+description: Types for the VideoApp interface — video sources, items, metadata, the Launch directive, and playback requests
+---
+
+Types for full-screen native video playback on screen-capable devices (Echo Show, Fire TV).
+
+## Video Item Types
+
+```typescript
+interface VideoItem {
+  sources: VideoSource[];       // Tried in order
+  metadata?: VideoMetadata;
+}
+
+interface VideoSource {
+  url: string;                  // Must be HTTPS
+  sizeInBytes?: number;
+  offsetInMilliseconds?: number; // Default: 0
+}
+
+interface VideoMetadata {
+  title?: string;
+  subtitle?: string;
+}
+```
+
+## Directive
+
+```typescript
+interface VideoAppLaunchDirective extends Directive {
+  type: "VideoApp.Launch";
+  videoItem: VideoItem;
+}
+```
+
+<Note>
+  The response containing a `VideoApp.Launch` directive must not include `shouldEndSession` — video playback keeps the session open.
+</Note>
+
+## Request Types
+
+```typescript
+interface VideoAppPlaybackStartedRequest extends Request {
+  type: "VideoApp.PlaybackStarted";
+  offsetInMilliseconds: number;
+  token?: string;
+}
+
+interface VideoAppPlaybackFinishedRequest extends Request {
+  type: "VideoApp.PlaybackFinished";
+  offsetInMilliseconds: number;
+  token?: string;
+}
+
+interface VideoAppPlaybackStoppedRequest extends Request {
+  type: "VideoApp.PlaybackStopped";
+  offsetInMilliseconds: number;  // Use for resume
+  token?: string;
+}
+
+interface VideoAppPlaybackFailedRequest extends Request {
+  type: "VideoApp.PlaybackFailed";
+  offsetInMilliseconds?: number;
+  token?: string;
+  error: VideoAppPlaybackError;
+}
+```
+
+## Error Types
+
+```typescript
+interface VideoAppPlaybackError {
+  type: VideoAppErrorType;
+  message: string;
+}
+
+type VideoAppErrorType =
+  | "MEDIA_ERROR_UNKNOWN"
+  | "MEDIA_ERROR_INVALID_REQUEST"
+  | "MEDIA_ERROR_SERVICE_UNAVAILABLE"
+  | "MEDIA_ERROR_INTERNAL_SERVER_ERROR"
+  | "MEDIA_ERROR_INTERNAL_DEVICE_ERROR";
+```

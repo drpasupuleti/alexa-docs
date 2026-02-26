@@ -1,0 +1,125 @@
+---
+title: AudioPlayer Types
+description: Types for the AudioPlayer interface — streams, items, metadata, directives, requests, and enums
+---
+
+Types for long-form audio streaming (music, podcasts, audiobooks). Covers audio items, stream configuration, three directive types, and five playback request types.
+
+## Enums
+
+```typescript
+type AudioPlayBehavior = "REPLACE_ALL" | "ENQUEUE" | "REPLACE_ENQUEUED";
+type AudioClearBehavior = "CLEAR_ENQUEUED" | "CLEAR_ALL";
+type AudioPlayerActivity = "IDLE" | "PLAYING" | "PAUSED" | "BUFFER_UNDERRUN" | "FINISHED" | "STOPPED";
+
+type AudioPlayerErrorType =
+  | "MEDIA_ERROR_UNKNOWN"
+  | "MEDIA_ERROR_INVALID_REQUEST"
+  | "MEDIA_ERROR_SERVICE_UNAVAILABLE"
+  | "MEDIA_ERROR_INTERNAL_SERVER_ERROR"
+  | "MEDIA_ERROR_INTERNAL_DEVICE_ERROR";
+```
+
+## Audio Item Types
+
+```typescript
+interface AudioItem {
+  stream: AudioStream;
+  metadata?: AudioItemMetadata;
+}
+
+interface AudioStream {
+  url: string;                       // Must be HTTPS
+  token: string;                     // Unique stream identifier
+  expectedPreviousToken?: string;    // Required for ENQUEUE
+  offsetInMilliseconds: number;
+}
+
+interface AudioItemMetadata {
+  title?: string;
+  subtitle?: string;
+  art?: AudioImageSource;
+  backgroundImage?: AudioImageSource;
+}
+
+interface AudioImageSource {
+  contentDescription?: string;
+  sources: AudioImageSourceItem[];
+}
+
+interface AudioImageSourceItem {
+  url: string;
+  widthPixels?: number;
+  heightPixels?: number;
+  size?: "X_SMALL" | "SMALL" | "MEDIUM" | "LARGE" | "X_LARGE";
+}
+```
+
+## Directive Types
+
+```typescript
+interface AudioPlayerPlayDirective extends Directive {
+  type: "AudioPlayer.Play";
+  playBehavior: AudioPlayBehavior;
+  audioItem: AudioItem;
+}
+
+interface AudioPlayerStopDirective extends Directive {
+  type: "AudioPlayer.Stop";
+}
+
+interface AudioPlayerClearQueueDirective extends Directive {
+  type: "AudioPlayer.ClearQueue";
+  clearBehavior: AudioClearBehavior;
+}
+```
+
+## Request Types
+
+```typescript
+interface AudioPlayerPlaybackStartedRequest extends Request {
+  type: "AudioPlayer.PlaybackStarted";
+  token: string;
+  offsetInMilliseconds: number;
+}
+
+interface AudioPlayerPlaybackFinishedRequest extends Request {
+  type: "AudioPlayer.PlaybackFinished";
+  token: string;
+  offsetInMilliseconds: number;
+}
+
+interface AudioPlayerPlaybackStoppedRequest extends Request {
+  type: "AudioPlayer.PlaybackStopped";
+  token: string;
+  offsetInMilliseconds: number;  // Use for resume
+}
+
+interface AudioPlayerPlaybackNearlyFinishedRequest extends Request {
+  type: "AudioPlayer.PlaybackNearlyFinished";
+  token: string;
+  offsetInMilliseconds: number;
+}
+
+interface AudioPlayerPlaybackFailedRequest extends Request {
+  type: "AudioPlayer.PlaybackFailed";
+  token: string;
+  error: AudioPlayerError;
+  currentPlaybackState: AudioPlayerCurrentPlaybackState;
+}
+```
+
+## Error Types
+
+```typescript
+interface AudioPlayerError {
+  type: AudioPlayerErrorType;
+  message: string;
+}
+
+interface AudioPlayerCurrentPlaybackState {
+  token: string;
+  offsetInMilliseconds: number;
+  playerActivity: AudioPlayerActivity;
+}
+```

@@ -1,0 +1,48 @@
+---
+title: Context Parsers
+description: Extract device capabilities, visual state, and widget information from skill requests
+---
+
+Context parsers extract structured information from the `context` object in every Alexa skill request. This includes device capabilities, what's visible on screen, and widget state.
+
+<CardGroup cols={3}>
+  <Card title="Viewport Parser" icon="display" href="/context/viewport">
+    Detect interface support (APL, APLA, APLT), extract viewport dimensions, DPI, input modes, and extensions.
+  </Card>
+  <Card title="Visual Context Parser" icon="eye" href="/context/visual-context">
+    Search visible components, extract tags (list, media, pager), parse positions, and check visibility.
+  </Card>
+  <Card title="Widget Context Parser" icon="grid-2" href="/context/widget">
+    Access widget contexts, check package installation, and detect widget-triggered requests.
+  </Card>
+</CardGroup>
+
+## Quick Example
+
+```typescript
+import {
+  supportsAPL,
+  getViewportPixelSize,
+  getVisualContext,
+  findComponentById,
+  isWidgetRequest,
+} from "alexa-apl-interface";
+
+// Check device capabilities
+if (supportsAPL(alexaRequest)) {
+  const size = getViewportPixelSize(alexaRequest);
+  console.log(`Screen: ${size?.pixelWidth}x${size?.pixelHeight}`);
+}
+
+// Inspect what's on screen
+const ctx = getVisualContext(alexaRequest);
+const button = findComponentById(
+  ctx?.componentsVisibleOnScreen ?? [],
+  "myButton"
+);
+
+// Detect widget requests
+if (isWidgetRequest(alexaRequest)) {
+  // Request was triggered from a widget interaction
+}
+```

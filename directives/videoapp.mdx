@@ -1,0 +1,71 @@
+---
+title: VideoApp Directives
+description: Play full-screen native video on screen-capable Alexa devices
+---
+
+The VideoApp interface plays full-screen native video on screen-capable devices (Echo Show, Fire TV). Unlike APL video components, VideoApp takes over the entire screen.
+
+## Launch
+
+Starts playing a video in native full-screen mode.
+
+<Tabs>
+  <Tab title="Single Source">
+    ```typescript
+    import { createVideoAppLaunchDirective } from "alexa-apl-interface";
+
+    const directive = createVideoAppLaunchDirective(
+      "https://example.com/video.mp4",
+      {
+        title: "My Video",
+        subtitle: "Episode 1",
+        offsetInMilliseconds: 0,
+      }
+    );
+    ```
+  </Tab>
+  <Tab title="Multiple Sources">
+    ```typescript
+    import { createVideoAppLaunchDirectiveWithSources } from "alexa-apl-interface";
+
+    // Device tries each source in order until it finds one it can play
+    const directive = createVideoAppLaunchDirectiveWithSources(
+      [
+        { url: "https://cdn1.example.com/video.mp4" },
+        { url: "https://cdn2.example.com/video.mp4" },
+      ],
+      { title: "My Video", subtitle: "With CDN fallback" }
+    );
+    ```
+  </Tab>
+  <Tab title="Builder Pattern">
+    ```typescript
+    import { VideoAppLaunchDirectiveBuilder } from "alexa-apl-interface";
+
+    const directive = new VideoAppLaunchDirectiveBuilder()
+      .addSource("https://example.com/video-hd.mp4", {
+        sizeInBytes: 52428800,
+      })
+      .addSource("https://example.com/video-sd.mp4", {
+        sizeInBytes: 15728640,
+      })
+      .setTitle("My Video")
+      .setSubtitle("Episode 1")
+      .build();
+    ```
+  </Tab>
+</Tabs>
+
+<Warning>
+  All video URLs must use HTTPS. The response must not include `shouldEndSession` — the VideoApp interface keeps the session open automatically.
+</Warning>
+
+### Builder Methods
+
+| Method | Description |
+|---|---|
+| `addSource(url, options?)` | Add a video source URL. At least one is required. |
+| `setTitle(title)` | Set the video title displayed during playback. |
+| `setSubtitle(subtitle)` | Set the subtitle displayed during playback. |
+| `setMetadata(metadata)` | Set the full metadata object. |
+| `build()` | Returns the directive. Throws if no sources are added. |

@@ -1,0 +1,82 @@
+---
+title: Request Validator
+description: Validate request timestamps to guard against replay attacks
+---
+
+The request validator checks that incoming Alexa requests are fresh by verifying the timestamp. The Alexa documentation recommends a tolerance of 150 seconds (2.5 minutes).
+
+## validateRequestTimestamp
+
+Full validation with detailed results:
+
+```typescript
+import { validateRequestTimestamp } from "alexa-apl-interface";
+
+const result = validateRequestTimestamp(alexaRequest);
+
+if (!result.valid) {
+  console.error(result.error);
+  // e.g. "Request is too old: 200 seconds (max: 150 seconds)"
+}
+
+// Available fields
+result.valid;       // boolean
+result.timestamp;   // Date | undefined
+result.ageSeconds;  // number | undefined
+result.error;       // string | undefined
+```
+
+### Checks Performed
+
+1. `timestamp` field is present on the request
+2. Timestamp is a valid ISO 8601 date string
+3. Request is not older than `maxAgeSeconds` (default: 150s)
+4. Request is not from the future (with 5-second clock skew tolerance)
+
+## isRequestFresh
+
+Convenience boolean check:
+
+```typescript
+import { isRequestFresh } from "alexa-apl-interface";
+
+if (!isRequestFresh(alexaRequest)) {
+  return createAPLResponse({ speech: "Request expired. Please try again." });
+}
+```
+
+## Options
+
+Both functions accept an optional `TimestampValidationOptions` object:
+
+```typescript
+import { validateRequestTimestamp } from "alexa-apl-interface";
+
+const result = validateRequestTimestamp(alexaRequest, {
+  maxAgeSeconds: 300,       // Custom tolerance (default: 150)
+  now: new Date("2025-01-01"), // Override current time (useful for testing)
+});
+```
+
+## Additional Utilities
+
+```typescript
+import { getRequestAgeSeconds, getRequestTimestamp } from "alexa-apl-interface";
+
+const age = getRequestAgeSeconds(alexaRequest);
+// number | undefined — age in seconds
+
+const timestamp = getRequestTimestamp(alexaRequest);
+// Date | undefined — parsed timestamp
+```
+
+## Constants
+
+```typescript
+import { DEFAULT_MAX_REQUEST_AGE_SECONDS } from "alexa-apl-interface";
+// 150 — the Alexa-recommended tolerance
+```
+
+<Warning>
+  Skipping timestamp validation leaves your skill vulnerable to replay attacks. Always validate request freshness in production.
+</Warning>

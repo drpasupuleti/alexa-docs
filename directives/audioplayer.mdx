@@ -1,0 +1,115 @@
+---
+title: AudioPlayer Directives
+description: Stream long-form audio content with AudioPlayer directives
+---
+
+The AudioPlayer interface streams long-form audio (music, podcasts, audiobooks) on all Alexa devices. Unlike SSML or APLA, AudioPlayer keeps audio playing after the skill session ends and supports queue management.
+
+## Play
+
+Sends an audio stream to the device. The `playBehavior` controls how it interacts with the queue.
+
+<Tabs>
+  <Tab title="Replace & Play">
+    ```typescript
+    import { createAudioPlayerPlayDirective } from "alexa-apl-interface";
+
+    const directive = createAudioPlayerPlayDirective(
+      "https://example.com/podcast-ep42.mp3",
+      "episode-42",
+      {
+        title: "Episode 42: TypeScript Tips",
+        subtitle: "The Dev Podcast",
+        offsetInMilliseconds: 0,
+      }
+    );
+    ```
+  </Tab>
+  <Tab title="Enqueue Next Track">
+    ```typescript
+    import { createAudioPlayerEnqueueDirective } from "alexa-apl-interface";
+
+    // Typically called in response to PlaybackNearlyFinished
+    const directive = createAudioPlayerEnqueueDirective(
+      "https://example.com/podcast-ep43.mp3",
+      "episode-43",
+      "episode-42", // expectedPreviousToken
+      {
+        title: "Episode 43: Advanced Patterns",
+        subtitle: "The Dev Podcast",
+      }
+    );
+    ```
+  </Tab>
+  <Tab title="Resume Playback">
+    ```typescript
+    import { createAudioPlayerPlayDirective } from "alexa-apl-interface";
+
+    const directive = createAudioPlayerPlayDirective(
+      "https://example.com/podcast-ep42.mp3",
+      "episode-42",
+      { offsetInMilliseconds: 120000 } // Resume at 2 minutes
+    );
+    ```
+  </Tab>
+  <Tab title="Builder Pattern">
+    ```typescript
+    import { AudioPlayerPlayDirectiveBuilder } from "alexa-apl-interface";
+
+    const directive = new AudioPlayerPlayDirectiveBuilder()
+      .setUrl("https://example.com/song.mp3")
+      .setToken("song-1")
+      .setPlayBehavior("REPLACE_ALL")
+      .setOffsetInMilliseconds(0)
+      .setTitle("My Song")
+      .setSubtitle("My Artist")
+      .setArt({
+        contentDescription: "Album cover",
+        sources: [{ url: "https://example.com/cover.jpg", size: "LARGE" }],
+      })
+      .build();
+    ```
+  </Tab>
+</Tabs>
+
+### Play Behaviors
+
+| Behavior | Description |
+|---|---|
+| `REPLACE_ALL` | Stop current audio and replace the entire queue |
+| `ENQUEUE` | Add to end of current queue (requires `expectedPreviousToken`) |
+| `REPLACE_ENQUEUED` | Replace queued items but keep current stream playing |
+
+<Warning>
+  All audio stream URLs must use HTTPS. The builder throws an error if a non-HTTPS URL is provided.
+</Warning>
+
+## Stop
+
+Stops the currently playing audio stream.
+
+```typescript
+import { createAudioPlayerStopDirective } from "alexa-apl-interface";
+
+const directive = createAudioPlayerStopDirective();
+// { type: "AudioPlayer.Stop" }
+```
+
+## ClearQueue
+
+Clears the audio playback queue.
+
+```typescript
+import { createAudioPlayerClearQueueDirective } from "alexa-apl-interface";
+
+// Clear queue but keep current stream playing
+const clearQueued = createAudioPlayerClearQueueDirective("CLEAR_ENQUEUED");
+
+// Stop everything and clear the queue
+const clearAll = createAudioPlayerClearQueueDirective("CLEAR_ALL");
+```
+
+| Behavior | Description |
+|---|---|
+| `CLEAR_ENQUEUED` | Clear the queue but keep the current stream playing |
+| `CLEAR_ALL` | Clear the queue and stop the current stream |

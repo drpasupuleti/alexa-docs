@@ -1,0 +1,110 @@
+---
+title: DataStore Types
+description: Types for the Alexa.DataStore interface — commands, error types, and error request
+---
+
+Types for the DataStore interface that notifies the skill about errors when updating the device's local data store. The data store is used by widgets to display content without round-trips to the skill.
+
+## DataStore Commands
+
+Commands referenced in error payloads to identify what failed:
+
+```typescript
+type DataStoreCommand =
+  | PutObjectCommand
+  | RemoveObjectCommand
+  | RemoveNamespaceCommand
+  | ClearCommand;
+
+interface PutObjectCommand {
+  type: "PUT_OBJECT";
+  namespace: string;
+  key: string;
+  content: Record<string, unknown>;
+}
+
+interface RemoveObjectCommand {
+  type: "REMOVE_OBJECT";
+  namespace: string;
+  key: string;
+}
+
+interface RemoveNamespaceCommand {
+  type: "REMOVE_NAMESPACE";
+  namespace: string;
+}
+
+interface ClearCommand {
+  type: "CLEAR";
+}
+```
+
+## Error Types
+
+```typescript
+type DataStoreErrorType =
+  | "DEVICE_PERMANENTLY_UNAVAILABLE"
+  | "DEVICE_UNAVAILABLE"
+  | "DATASTORE_INTERNAL_ERROR"
+  | "STORAGE_LIMIT_EXCEEDED";
+
+type DataStoreError =
+  | DeviceUnavailableError
+  | DevicePermanentlyUnavailableError
+  | StorageLimitExceededError
+  | DataStoreInternalError;
+```
+
+### Error Content Shapes
+
+```typescript
+// Used by DEVICE_UNAVAILABLE and DEVICE_PERMANENTLY_UNAVAILABLE
+interface DeviceUnavailableErrorContent {
+  deviceId: string;
+  commands: DataStoreCommand[];  // Consolidated failed commands
+}
+
+// Used by STORAGE_LIMIT_EXCEEDED and DATASTORE_INTERNAL_ERROR
+interface StorageLimitErrorContent {
+  deviceId: string;
+  failedCommand: DataStoreCommand;  // Single failed command
+  message?: string;
+}
+```
+
+### Error Union Members
+
+```typescript
+interface DeviceUnavailableError {
+  type: "DEVICE_UNAVAILABLE";
+  content: DeviceUnavailableErrorContent;
+}
+
+interface DevicePermanentlyUnavailableError {
+  type: "DEVICE_PERMANENTLY_UNAVAILABLE";
+  content: DeviceUnavailableErrorContent;
+}
+
+interface StorageLimitExceededError {
+  type: "STORAGE_LIMIT_EXCEEDED";
+  content: StorageLimitErrorContent;
+}
+
+interface DataStoreInternalError {
+  type: "DATASTORE_INTERNAL_ERROR";
+  content: StorageLimitErrorContent;
+}
+```
+
+## Request
+
+```typescript
+interface DataStoreErrorRequest extends Request {
+  type: "Alexa.DataStore.DataStoreError" | "Alexa.DataStore.Error";
+  error: DataStoreError;
+}
+```
+
+<Note>
+  The documentation specifies the type as `Alexa.DataStore.DataStoreError`, while JSON examples use `Alexa.DataStore.Error`. Both forms are accepted.
+</Note>

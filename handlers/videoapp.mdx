@@ -1,0 +1,96 @@
+---
+title: VideoApp Request Handlers
+description: Handle playback lifecycle events from the VideoApp interface
+---
+
+The VideoApp handler module processes four playback lifecycle requests for full-screen native video playback on screen-capable devices.
+
+## Type Guards
+
+```typescript
+import {
+  isVideoAppRequest,
+  isVideoAppPlaybackStarted,
+  isVideoAppPlaybackFinished,
+  isVideoAppPlaybackStopped,
+  isVideoAppPlaybackFailed,
+} from "alexa-apl-interface";
+```
+
+| Guard | Narrows To | Triggered When |
+|---|---|---|
+| `isVideoAppRequest(request)` | `boolean` | Any `VideoApp.*` request |
+| `isVideoAppPlaybackStarted(request)` | `VideoAppPlaybackStartedRequest` | Video playback began |
+| `isVideoAppPlaybackFinished(request)` | `VideoAppPlaybackFinishedRequest` | Video reached end of stream |
+| `isVideoAppPlaybackStopped(request)` | `VideoAppPlaybackStoppedRequest` | User navigated away or said "stop" |
+| `isVideoAppPlaybackFailed(request)` | `VideoAppPlaybackFailedRequest` | Video encountered an error |
+
+## Extraction Utilities
+
+### Offset
+
+```typescript
+import {
+  getVideoPlaybackOffset,
+  getVideoPlaybackOffsetSeconds,
+} from "alexa-apl-interface";
+
+const offsetMs = getVideoPlaybackOffset(request);       // number | undefined
+const offsetSec = getVideoPlaybackOffsetSeconds(request); // number | undefined
+```
+
+<Note>
+  The offset may be `undefined` for some failure cases. Always check before using.
+</Note>
+
+### Error Details (PlaybackFailed only)
+
+```typescript
+import {
+  getVideoPlaybackError,
+  getVideoPlaybackErrorType,
+} from "alexa-apl-interface";
+
+const error = getVideoPlaybackError(request);
+// { type: VideoAppErrorType, message: string }
+
+const errorType = getVideoPlaybackErrorType(request);
+// e.g. "MEDIA_ERROR_SERVICE_UNAVAILABLE"
+```
+
+## Error Types
+
+| Type | Description |
+|---|---|
+| `MEDIA_ERROR_UNKNOWN` | Unknown media error |
+| `MEDIA_ERROR_INVALID_REQUEST` | Invalid request (bad URL, unsupported format) |
+| `MEDIA_ERROR_SERVICE_UNAVAILABLE` | Media service is unavailable |
+| `MEDIA_ERROR_INTERNAL_SERVER_ERROR` | Internal server error |
+| `MEDIA_ERROR_INTERNAL_DEVICE_ERROR` | Device-side playback error |
+
+## Device Support
+
+```typescript
+import { supportsVideoApp } from "alexa-apl-interface";
+
+if (supportsVideoApp(alexaRequest)) {
+  // Safe to send VideoApp.Launch directive
+}
+```
+
+<Warning>
+  Always check `supportsVideoApp()` before sending a `VideoApp.Launch` directive. Only screen-capable devices (Echo Show, Fire TV) support native video playback.
+</Warning>
+
+## Resume Pattern
+
+Use the offset from `PlaybackStopped` to resume playback later:
+
+```typescript
+import { isVideoAppPlaybackStopped, getVideoPlaybackOffset } from "alexa-apl-interface";
+
+if (isVideoAppPlaybackStopped(request)) {
+  const resumeOffset = getVideoPlaybackOffset(request);
+  // Store resumeOffset in session or database for later use
+}
+```

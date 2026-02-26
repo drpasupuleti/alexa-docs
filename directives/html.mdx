@@ -1,0 +1,95 @@
+---
+title: HTML Directives
+description: Render interactive web content on screen devices with Alexa.Presentation.HTML
+---
+
+The HTML interface enables skills to render interactive web content on screen devices (Echo Show, Fire TV) with bidirectional message passing between the skill backend and a web app running in the device's HTML runtime.
+
+## Start
+
+Launches the HTML runtime and loads a web app URL.
+
+<Tabs>
+  <Tab title="Factory Function">
+    ```typescript
+    import { createHTMLStartDirective } from "alexa-apl-interface";
+
+    const directive = createHTMLStartDirective(
+      "https://my-webapp.example.com",
+      {
+        timeoutInSeconds: 120,
+        data: { userId: "user-123", theme: "dark" },
+        transformers: [
+          {
+            transformer: "ssmlToSpeech",
+            inputPath: "greeting",
+            outputName: "greetingSpeech",
+          },
+        ],
+      }
+    );
+    ```
+  </Tab>
+  <Tab title="Builder Pattern">
+    ```typescript
+    import { HTMLStartDirectiveBuilder } from "alexa-apl-interface";
+
+    const directive = new HTMLStartDirectiveBuilder()
+      .setUri("https://my-webapp.example.com")
+      .setTimeoutInSeconds(180)
+      .setData({ userId: "user-123", theme: "dark" })
+      .addTransformer({
+        transformer: "textToHint",
+        inputPath: "hint",
+        outputName: "hintText",
+      })
+      .setHeaders({ "X-Custom-Header": "value" })
+      .build();
+    ```
+  </Tab>
+</Tabs>
+
+### Session Timeout
+
+The timeout controls how long the web app can remain on screen without user interaction.
+
+| Constant | Value |
+|---|---|
+| `HTML_MIN_TIMEOUT_SECONDS` | 30 seconds |
+| `HTML_MAX_TIMEOUT_SECONDS` | 300 seconds (5 minutes) |
+
+<Warning>
+  The web app URL must use HTTPS and be on an allowlisted domain. The builder throws if a non-HTTPS URL is provided or the timeout is out of range.
+</Warning>
+
+## HandleMessage
+
+Sends a message from the skill to the currently running web app. The web app receives it via the Alexa HTML SDK's `onMessage` callback.
+
+<Tabs>
+  <Tab title="Factory Function">
+    ```typescript
+    import { createHTMLHandleMessageDirective } from "alexa-apl-interface";
+
+    const directive = createHTMLHandleMessageDirective(
+      { action: "updateScore", score: 42 }
+    );
+    ```
+  </Tab>
+  <Tab title="With Transformers">
+    ```typescript
+    import { createHTMLHandleMessageDirective } from "alexa-apl-interface";
+
+    const directive = createHTMLHandleMessageDirective(
+      { action: "speak", text: "Great job!" },
+      [
+        {
+          transformer: "ssmlToSpeech",
+          inputPath: "text",
+          outputName: "speechUrl",
+        },
+      ]
+    );
+    ```
+  </Tab>
+</Tabs>
