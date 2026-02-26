@@ -24,7 +24,7 @@ Each handler module follows a consistent pattern:
 | Module | Request Types | Description |
 |---|---|---|
 | [APL](/handlers/apl) | UserEvent, LoadIndexListData, LoadTokenListData, RuntimeError | Screen interactions and dynamic list data |
-| [APLA](/handlers/apla) | RuntimeError | Audio rendering errors |
+| [APLA](/handlers/apla) *(deprecated)* | RuntimeError | Audio rendering errors — use APLT instead |
 | [AudioPlayer](/handlers/audioplayer) | PlaybackStarted, Finished, Stopped, NearlyFinished, Failed | Audio playback lifecycle |
 | [VideoApp](/handlers/videoapp) | PlaybackStarted, Finished, Stopped, Failed | Video playback lifecycle |
 | [DataStore](/handlers/datastore) | DataStoreError | Device data store update failures |
