@@ -1,11 +1,12 @@
 ---
-title: APLA Request Handlers
-description: Handle RuntimeError requests from the APLA audio interface
+title: APLA Request Handlers (Deprecated)
+description: Handle RuntimeError requests from the APLA audio interface (deprecated in favor of APLT)
 ---
 
 <Warning>
-  **Deprecated** — APLA request handlers are deprecated and will be removed in a future release.
-  Use [APLT directives](/directives/aplt) instead for all new audio and character display implementations.
+  **Deprecated** — APLA request handlers are deprecated in favor of [APLT directives](/directives/aplt).
+  Please migrate existing APLA usage to APLT and use APLT for all new implementations.
+  APLA will be removed in a future release.
 </Warning>
 
 The APLA request handler module processes `RuntimeError` requests from the `Alexa.Presentation.APLA` interface. These are notification-only — the skill cannot return a meaningful response.
