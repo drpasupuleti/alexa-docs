@@ -113,3 +113,25 @@ const clearAll = createAudioPlayerClearQueueDirective("CLEAR_ALL");
 |---|---|
 | `CLEAR_ENQUEUED` | Clear the queue but keep the current stream playing |
 | `CLEAR_ALL` | Clear the queue and stop the current stream |
+
+## AudioPlayer V1 vs V2
+
+AudioPlayer V2 builds on top of V1 — it does not replace it. V1 handles stream lifecycle (play, stop, queue), while V2 adds position control within an active stream. Use them together.
+
+| Capability | V1 | V2 |
+|---|---|---|
+| Start audio playback | `Play` | — |
+| Stop audio playback | `Stop` | — |
+| Manage playback queue | `ClearQueue` | — |
+| Queue management behaviors | `REPLACE_ALL`, `ENQUEUE`, `REPLACE_ENQUEUED` | — |
+| Skip to a position in current stream | — | `SkipTo` |
+| Replay from a position in current stream | — | `ReplayFrom` |
+| Stream metadata (title, subtitle, art) | ✅ | — |
+| Playback lifecycle events | ✅ (Started, Finished, Stopped, NearlyFinished, Failed) | Reuses V1 events |
+| Resume playback via offset | ✅ (set `offsetInMilliseconds` on `Play`) | ✅ (set `offsetInMilliseconds` on `SkipTo` / `ReplayFrom`) |
+| Token required | ✅ | ✅ |
+| Time conversion helpers | — | `secondsToMilliseconds()`, `minutesToMilliseconds()` |
+
+<Info>
+  V2 directives operate on the currently playing stream started by a V1 `Play` directive. You always need V1 to begin playback — V2 controls position within that stream. See the [AudioPlayer V2 Directives](/directives/audioplayer-v2) doc for full usage details.
+</Info>
