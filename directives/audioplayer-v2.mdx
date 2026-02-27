@@ -1,0 +1,101 @@
+---
+title: AudioPlayer V2 Directives
+description: Control playback position with AudioPlayer V2 SkipTo and ReplayFrom directives
+---
+
+AudioPlayer V2 extends the [AudioPlayer](/directives/audioplayer) interface with playback position control. It introduces two new directives that let skills jump to or replay from a specific time position in the currently playing audio stream.
+
+<Info>
+  AudioPlayer V2 builds on top of V1. You still use V1 directives (`Play`, `Stop`, `ClearQueue`) for stream management. V2 adds position control for the active stream.
+</Info>
+
+## SkipTo
+
+Jumps to an absolute time position in the currently playing audio stream.
+
+<Tabs>
+  <Tab title="Factory Function">
+    ```typescript
+    import { createAudioPlayerV2SkipToDirective } from "alexa-apl-interface";
+
+    const directive = createAudioPlayerV2SkipToDirective(
+      "episode-42",       // token identifying the stream
+      120000              // skip to 2 minutes (in milliseconds)
+    );
+    ```
+  </Tab>
+  <Tab title="Builder Pattern">
+    ```typescript
+    import { AudioPlayerV2SkipToDirectiveBuilder } from "alexa-apl-interface";
+
+    const directive = new AudioPlayerV2SkipToDirectiveBuilder()
+      .setToken("episode-42")
+      .setOffsetInMilliseconds(120000)
+      .build();
+    ```
+  </Tab>
+</Tabs>
+
+## ReplayFrom
+
+Replays the audio stream starting from an absolute time position.
+
+<Tabs>
+  <Tab title="Factory Function">
+    ```typescript
+    import { createAudioPlayerV2ReplayFromDirective } from "alexa-apl-interface";
+
+    const directive = createAudioPlayerV2ReplayFromDirective(
+      "episode-42",       // token identifying the stream
+      60000               // replay from 1 minute (in milliseconds)
+    );
+    ```
+  </Tab>
+  <Tab title="Builder Pattern">
+    ```typescript
+    import { AudioPlayerV2ReplayFromDirectiveBuilder } from "alexa-apl-interface";
+
+    const directive = new AudioPlayerV2ReplayFromDirectiveBuilder()
+      .setToken("episode-42")
+      .setOffsetInMilliseconds(60000)
+      .build();
+    ```
+  </Tab>
+</Tabs>
+
+## Builder Methods
+
+Both `AudioPlayerV2SkipToDirectiveBuilder` and `AudioPlayerV2ReplayFromDirectiveBuilder` share the same API:
+
+| Method | Description |
+|---|---|
+| `setToken(token)` | Set the opaque token identifying the audio stream. Required. |
+| `setOffsetInMilliseconds(offset)` | Set the absolute target time position in milliseconds. Must be non-negative. Defaults to `0`. |
+| `build()` | Returns the directive. Throws if token is missing or offset is negative. |
+
+## Time Conversion Helpers
+
+Convenience functions for converting human-readable time units to milliseconds:
+
+```typescript
+import { secondsToMilliseconds, minutesToMilliseconds } from "alexa-apl-interface";
+
+secondsToMilliseconds(90);   // 90000
+minutesToMilliseconds(2);    // 120000
+```
+
+<Warning>
+  Both helpers throw an error if the input value is negative.
+</Warning>
+
+## Validation
+
+Both builders and factory functions validate inputs at build time:
+
+```typescript
+// Throws: "AudioPlayerV2.SkipTo requires a token. Call setToken() first."
+new AudioPlayerV2SkipToDirectiveBuilder().build();
+
+// Throws: "offsetInMilliseconds must be non-negative (got -1000)"
+createAudioPlayerV2SkipToDirective("my-token", -1000);
+```

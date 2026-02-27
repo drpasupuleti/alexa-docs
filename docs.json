@@ -39,6 +39,7 @@
               "directives/apla",
               "directives/aplt",
               "directives/audioplayer",
+              "directives/audioplayer-v2",
               "directives/videoapp",
               "directives/html"
             ]
@@ -98,6 +99,7 @@
             "group": "Media Types",
             "pages": [
               "types/audioplayer",
+              "types/audioplayer-v2",
               "types/videoapp",
               "types/html"
             ]

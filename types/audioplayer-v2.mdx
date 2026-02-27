@@ -1,0 +1,26 @@
+---
+title: AudioPlayer V2 Types
+description: Types for the AudioPlayer V2 interface — SkipTo and ReplayFrom directives for playback position control
+---
+
+Types for AudioPlayer V2 playback position control. These extend the [AudioPlayer V1 types](/types/audioplayer) with two new directive types.
+
+## Directive Types
+
+```typescript
+interface AudioPlayerV2SkipToDirective extends Directive {
+  type: "AudioPlayerV2.SkipTo";
+  token: string;                     // Identifies the audio stream
+  offsetInMilliseconds: number;      // Absolute target position (≥ 0)
+}
+
+interface AudioPlayerV2ReplayFromDirective extends Directive {
+  type: "AudioPlayerV2.ReplayFrom";
+  token: string;                     // Identifies the audio stream
+  offsetInMilliseconds: number;      // Absolute replay position (≥ 0)
+}
+```
+
+<Note>
+  Both directives require a `token` matching the currently playing audio stream and a non-negative `offsetInMilliseconds` value representing an absolute time position.
+</Note>
