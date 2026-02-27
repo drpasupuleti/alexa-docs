@@ -36,7 +36,7 @@ Launches the HTML runtime and loads a web app URL.
 
     const directive = new HTMLStartDirectiveBuilder()
       .setUri("https://my-webapp.example.com")
-      .setTimeoutInSeconds(180)
+      .setTimeoutInSeconds(90)
       .setData({ userId: "user-123", theme: "dark" })
       .addTransformer({
         transformer: "textToHint",
@@ -56,10 +56,10 @@ The timeout controls how long the web app can remain on screen without user inte
 | Constant | Value |
 |---|---|
 | `HTML_MIN_TIMEOUT_SECONDS` | 30 seconds |
-| `HTML_MAX_TIMEOUT_SECONDS` | 300 seconds (5 minutes) |
+| `HTML_MAX_TIMEOUT_SECONDS` | 120 seconds (2 minutes) |
 
 <Warning>
-  The web app URL must use HTTPS and be on an allowlisted domain. The builder throws if a non-HTTPS URL is provided or the timeout is out of range.
+  The maximum timeout was reduced from 300 seconds to **120 seconds** in the latest release. Existing skills using a timeout above 120 seconds will need to update their value. The web app URL must use HTTPS and be on an allowlisted domain. The builder throws if a non-HTTPS URL is provided or the timeout is out of range.
 </Warning>
 
 ## HandleMessage
