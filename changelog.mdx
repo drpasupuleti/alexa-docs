@@ -1,0 +1,56 @@
+---
+title: "Changelog"
+description: "Latest updates, deprecations, and new features for the Alexa APL Interface SDK"
+rss: true
+---
+
+<Update label="February 27, 2026" description="HTML Timeout Update" tags={["HTML", "Breaking Change"]}>
+  ## HTML max timeout reduced to 120 seconds
+
+  `HTML_MAX_TIMEOUT_SECONDS` has been reduced from 300 seconds (5 minutes) to **120 seconds** (2 minutes).
+
+  Skills using a timeout value above 120 seconds will need to update before upgrading. The builder now throws if the timeout exceeds the new limit.
+
+  See [HTML Directives](/directives/html) for details.
+</Update>
+
+<Update label="February 27, 2026" description="AudioPlayer V1 vs V2 Comparison" tags={["AudioPlayer"]}>
+  ## AudioPlayer V1 vs V2 comparison table
+
+  Added a comparison table to the [AudioPlayer Directives](/directives/audioplayer) page to help developers understand the differences between V1 (stream lifecycle) and V2 (playback position control).
+</Update>
+
+<Update label="February 27, 2026" description="AudioPlayer V2" tags={["AudioPlayer", "New Feature"]}>
+  ## AudioPlayer V2 directives
+
+  Introduced two new directives for playback position control:
+
+  - **SkipTo** — jump to an absolute time position in the currently playing audio stream
+  - **ReplayFrom** — replay from an absolute time position
+
+  Both support builder patterns and factory functions, with built-in validation and time conversion helpers (`secondsToMilliseconds`, `minutesToMilliseconds`).
+
+  See [AudioPlayer V2 Directives](/directives/audioplayer-v2) and [AudioPlayer V2 Types](/types/audioplayer-v2).
+</Update>
+
+<Update label="February 26, 2026" description="VideoApp Deprecation" tags={["VideoApp", "Deprecation"]}>
+  ## VideoApp deprecated in favor of AudioPlayer
+
+  VideoApp directives, request handlers, and types are now deprecated. Support will be removed after **September 20, 2026**.
+
+  Please migrate to [AudioPlayer directives](/directives/audioplayer) before the deadline. See [VideoApp Directives](/directives/videoapp) for the deprecation notice.
+</Update>
+
+<Update label="February 26, 2026" description="APLA Deprecation" tags={["APLA", "Deprecation"]}>
+  ## APLA deprecated in favor of APLT
+
+  APLA directives, request handlers, and types are now deprecated and will be removed in a future release.
+
+  Please migrate to [APLT directives](/directives/aplt) for all new implementations. See [APLA Directives](/directives/apla) for the deprecation notice.
+</Update>
+
+<Update label="February 26, 2026" description="Initial Documentation" tags={["Documentation"]}>
+  ## Initial SDK documentation
+
+  Published the full documentation site for the Alexa APL Interface TypeScript SDK, covering directives, request handlers, context parsers, validators, type references, and the request router.
+</Update>
