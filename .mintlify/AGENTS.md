@@ -23,7 +23,7 @@
 - Use active voice and second person ("you").
 - Keep sentences short and direct. Avoid filler words.
 - Use pipe tables for listing methods, error types, enums, and constants.
-- Mark deprecated features with "(Deprecated)" in the page title and frontmatter description.
+- Mark deprecated features with "(Archived)" in the page title and frontmatter description.
 - Include a migration path and deadline when deprecating features.
 
 ## Page Structure
