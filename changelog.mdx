@@ -4,6 +4,30 @@ description: "Latest updates, deprecations, and new features for the Alexa APL I
 rss: true
 ---
 
+<Update label="April 9, 2026" description="VideoAppLaunchDirective Deprecation" tags={["VideoApp", "Deprecation"]}>
+  ## VideoAppLaunchDirective deprecated
+
+  The `VideoAppLaunchDirective` interface is now marked `@deprecated` in the source code. Use Alexa.Presentation.APL video components instead. `VideoApp.Launch` will be removed in a future release.
+
+  See [VideoApp Types](/types/videoapp) and [VideoApp Directives](/directives/videoapp) for updated deprecation notices.
+</Update>
+
+<Update label="April 9, 2026" description="AudioPlayer V2 Validation Support" tags={["Validators", "AudioPlayer"]}>
+  ## Directive validator now supports AudioPlayer V2
+
+  `validateDirective()` now recognizes `AudioPlayerV2.SkipTo` and `AudioPlayerV2.ReplayFrom` directive types. Two new per-type validators are available: `validateAudioPlayerV2SkipTo` and `validateAudioPlayerV2ReplayFrom`.
+
+  See [Directive Validator](/validators/directive-validator) for details.
+</Update>
+
+<Update label="April 9, 2026" description="AudioPlayer V2 Request Handler Docs" tags={["AudioPlayer", "Documentation"]}>
+  ## AudioPlayer V2 request handler documentation
+
+  Added documentation for the AudioPlayer V2 request handler module, covering `isAudioPlayerV2Request` and `supportsAudioPlayerV2`.
+
+  See [AudioPlayer V2 Handlers](/handlers/audioplayer-v2).
+</Update>
+
 <Update label="April 8, 2026" description="AudioPlayer V2 Seek Complete Event" tags={["AudioPlayer", "New Feature"]}>
   ## AudioPlayer V2 seek complete event
 

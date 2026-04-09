@@ -51,6 +51,7 @@
               "handlers/apl",
               "handlers/apla",
               "handlers/audioplayer",
+              "handlers/audioplayer-v2",
               "handlers/videoapp",
               "handlers/datastore",
               "handlers/package-manager",
