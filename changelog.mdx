@@ -4,6 +4,14 @@ description: "Latest updates, deprecations, and new features for the Alexa APL I
 rss: true
 ---
 
+<Update label="April 8, 2026" description="AudioPlayer V2 Seek Complete Event" tags={["AudioPlayer", "New Feature"]}>
+  ## AudioPlayer V2 seek complete event
+
+  Added the `AudioPlayerV2PlaybackSeekCompleteEvent` type. This event is sent by the device after a `SkipTo` or `ReplayFrom` seek operation completes. It reports the actual playback position the player landed on, which may differ from the requested offset due to keyframe alignment.
+
+  See [AudioPlayer V2 Types](/types/audioplayer-v2) for full details.
+</Update>
+
 <Update label="February 27, 2026" description="HTML Timeout Update" tags={["HTML", "Breaking Change"]}>
   ## HTML max timeout reduced to 120 seconds
 
