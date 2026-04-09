@@ -1,0 +1,32 @@
+---
+title: AudioPlayer V2 Request Handlers
+description: Type guards and device capability detection for the AudioPlayer V2 interface
+---
+
+The AudioPlayer V2 handler module provides a type guard for identifying AudioPlayer V2 requests and a capability check for detecting V2 support on the device.
+
+## Type guards
+
+```typescript
+import { isAudioPlayerV2Request } from "alexa-apl-interface";
+```
+
+| Guard | Returns | Triggered when |
+|---|---|---|
+| `isAudioPlayerV2Request(request)` | `boolean` | Any request with a type starting with `AudioPlayerV2.` |
+
+## Device support
+
+Always check for AudioPlayer V2 support before sending `SkipTo` or `ReplayFrom` directives.
+
+```typescript
+import { supportsAudioPlayerV2 } from "alexa-apl-interface";
+
+if (supportsAudioPlayerV2(alexaRequest)) {
+  // Safe to send AudioPlayerV2.SkipTo or AudioPlayerV2.ReplayFrom directives
+}
+```
+
+<Warning>
+  `supportsAudioPlayerV2()` checks `context.System.device.supportedInterfaces` for the `AudioPlayerV2` key. Not all devices that support AudioPlayer V1 also support V2.
+</Warning>

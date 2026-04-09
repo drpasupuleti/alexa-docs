@@ -26,7 +26,8 @@ Each handler module follows a consistent pattern:
 | [APL](/handlers/apl) | UserEvent, LoadIndexListData, LoadTokenListData, RuntimeError | Screen interactions and dynamic list data |
 | [APLA](/handlers/apla) *(deprecated)* | RuntimeError | Audio rendering errors — use APLT instead |
 | [AudioPlayer](/handlers/audioplayer) | PlaybackStarted, Finished, Stopped, NearlyFinished, Failed | Audio playback lifecycle |
-| [VideoApp](/handlers/videoapp) *(deprecated)* | PlaybackStarted, Finished, Stopped, Failed | Video playback lifecycle — use AudioPlayer by Sep 20, 2026 |
+| [AudioPlayer V2](/handlers/audioplayer-v2) | AudioPlayerV2.* | Playback position control (SkipTo, ReplayFrom) |
+| [VideoApp](/handlers/videoapp) *(deprecated)* | PlaybackStarted, Finished, Stopped, Failed | Video playback lifecycle — use APL video components |
 | [DataStore](/handlers/datastore) | DataStoreError | Device data store update failures |
 | [PackageManager](/handlers/package-manager) | UsagesInstalled, UsagesRemoved, UpdateRequest, InstallationError | Widget package lifecycle |
 | [HTML](/handlers/html) | Message | Web app ↔ skill messaging |

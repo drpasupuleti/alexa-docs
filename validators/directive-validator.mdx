@@ -3,7 +3,7 @@ title: Directive Validator
 description: Validate directive structure and required fields before sending to Alexa
 ---
 
-The directive validator checks that directives have all required fields and valid values before they are sent to the device. It supports all APL, APLA, APLT, AudioPlayer, and VideoApp directive types.
+The directive validator checks that directives have all required fields and valid values before they are sent to the device. It supports all APL, APLA, APLT, AudioPlayer, AudioPlayer V2, and VideoApp directive types.
 
 ## validateDirective
 
@@ -46,6 +46,8 @@ interface ValidationError {
 | `AudioPlayer.Play` | `validateAudioPlayerPlay` | playBehavior, stream URL (HTTPS), token, offset |
 | `AudioPlayer.Stop` | — | No additional validation needed |
 | `AudioPlayer.ClearQueue` | `validateAudioPlayerClearQueue` | clearBehavior |
+| `AudioPlayerV2.SkipTo` | `validateAudioPlayerV2SkipTo` | token (non-empty string), offsetInMilliseconds (≥ 0) |
+| `AudioPlayerV2.ReplayFrom` | `validateAudioPlayerV2ReplayFrom` | token (non-empty string), offsetInMilliseconds (≥ 0) |
 | `VideoApp.Launch` | `validateVideoAppLaunch` | videoItem, sources (HTTPS URLs) |
 
 <Note>
@@ -72,6 +74,17 @@ Each validator can be called directly if you already know the directive type:
     const result = validateAudioPlayerPlay(directive);
     // Checks: playBehavior, stream.url (HTTPS), stream.token,
     //         stream.offsetInMilliseconds, expectedPreviousToken (for ENQUEUE)
+    ```
+  </Tab>
+  <Tab title="AudioPlayer V2">
+    ```typescript
+    import { validateAudioPlayerV2SkipTo, validateAudioPlayerV2ReplayFrom } from "alexa-apl-interface";
+
+    const result = validateAudioPlayerV2SkipTo(directive);
+    // Checks: type, token (non-empty string), offsetInMilliseconds (required, ≥ 0)
+
+    const result2 = validateAudioPlayerV2ReplayFrom(directive);
+    // Checks: type, token (non-empty string), offsetInMilliseconds (required, ≥ 0)
     ```
   </Tab>
   <Tab title="VideoApp">
