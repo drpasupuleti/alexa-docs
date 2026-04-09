@@ -1,11 +1,11 @@
 ---
-title: AudioPlayer V2 Types
-description: Types for the AudioPlayer V2 interface — SkipTo and ReplayFrom directives for playback position control
+title: AudioPlayer V2 types
+description: Types for the AudioPlayer V2 interface — directives, context, and events for playback position control
 ---
 
-Types for AudioPlayer V2 playback position control. These extend the [AudioPlayer V1 types](/types/audioplayer) with two new directive types.
+Types for AudioPlayer V2 playback position control. These extend the [AudioPlayer V1 types](/types/audioplayer) with directive types, device context, and seek completion events.
 
-## Directive Types
+## Directive types
 
 ```typescript
 interface AudioPlayerV2SkipToDirective extends Directive {
@@ -23,4 +23,45 @@ interface AudioPlayerV2ReplayFromDirective extends Directive {
 
 <Note>
   Both directives require a `token` matching the currently playing audio stream and a non-negative `offsetInMilliseconds` value representing an absolute time position.
+</Note>
+
+## Context type
+
+`AudioPlayerV2Context` is included in the request context when the device supports AudioPlayer V2. Use it to read the current playback state before issuing seek directives.
+
+```typescript
+interface AudioPlayerV2Context {
+  token?: string;                    // Token of the active V2 stream
+  offsetInMilliseconds?: number;     // Current playback position
+  playerActivity?: "IDLE" | "PLAYING" | "PAUSED" | "STOPPED" | "FINISHED";
+  supportsSeek?: boolean;            // Whether the device supports seek
+}
+```
+
+<Tip>
+  Check `supportsSeek` before sending `SkipTo` or `ReplayFrom` directives. Not all streams support seeking.
+</Tip>
+
+## Seek complete event
+
+`AudioPlayerV2PlaybackSeekCompleteEvent` is sent by the device after a `SkipTo` or `ReplayFrom` seek operation finishes. The actual position the player landed on may differ from the requested offset due to keyframe alignment in the audio stream.
+
+```typescript
+interface AudioPlayerV2PlaybackSeekCompleteEvent {
+  seekType: "AudioPlayerV2.SkipTo" | "AudioPlayerV2.ReplayFrom";
+  token: string;                          // Stream that was seeked
+  requestedOffsetInMilliseconds: number;  // Offset you requested
+  actualOffsetInMilliseconds: number;     // Offset the player landed on
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `seekType` | `"AudioPlayerV2.SkipTo" \| "AudioPlayerV2.ReplayFrom"` | The directive type that triggered the seek |
+| `token` | `string` | Token of the stream that was seeked |
+| `requestedOffsetInMilliseconds` | `number` | The offset that was originally requested, in milliseconds |
+| `actualOffsetInMilliseconds` | `number` | The offset the player actually landed on, in milliseconds |
+
+<Note>
+  The `actualOffsetInMilliseconds` value may differ from `requestedOffsetInMilliseconds` because the player seeks to the nearest keyframe in the audio stream. Always use the actual offset when updating your UI or tracking playback position.
 </Note>
